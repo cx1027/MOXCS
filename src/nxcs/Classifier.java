@@ -280,10 +280,10 @@ public class Classifier implements Serializable {
 		}
 
 		condition = build.toString();
-//TODO:temptemp
-//		if (XienceMath.random() < mutationRate) {
-//			action = XienceMath.randomInt(numActions);
-//		}
+
+		if (XienceMath.random() < mutationRate) {
+			action = XienceMath.randomInt(numActions);
+		}
 	}
 
 	/**
