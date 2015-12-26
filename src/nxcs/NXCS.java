@@ -1,5 +1,7 @@
 package nxcs;
 
+import static java.util.stream.Collectors.toCollection;
+
 import java.awt.Point;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -646,7 +648,7 @@ public class NXCS {
 				} catch (Exception e) {
 					System.out.println(String.format("sorrrrrrrrrrrt"));
 				}
-				Vdots.get(actIndex).addAll(setAA.get(setAA.size() - 1).getV());
+				Vdots.get(actIndex).addAll(setAA.get(setAA.size() - 1).getV().stream().map(d -> d.clone()).collect(toCollection(ArrayList::new)));
 			}
 			// Collections.sort(setAA, (a, b) -> (int) ((a.error - b.error) *
 			// 1024));
@@ -914,8 +916,7 @@ public class NXCS {
 			clas.experience++;
 			if (clas.experience < 1. / params.beta) {
 				clas.averageSize = clas.averageSize + (setNumerosity - clas.numerosity) / clas.experience;
-				ArrayList<Qvector> nextQ = new ArrayList<Qvector>();
-				nextQ.addAll(V);
+				ArrayList<Qvector> nextQ = V.stream().map(d -> d.clone()).collect(toCollection(ArrayList::new));
 				// nextQ.addAll(clas.getQ());
 				// for (Qvector q : nextQ) {
 				// if ((q.get(1) == 10) && (q.get(0) == -1)) {
@@ -978,8 +979,7 @@ public class NXCS {
 				// System.out.println("clas.error after:" + clas.error);
 			} else {
 				clas.averageSize = clas.averageSize + (setNumerosity - clas.numerosity) * params.beta;
-				ArrayList<Qvector> nextQ = new ArrayList<Qvector>();
-				nextQ.addAll(V);
+				ArrayList<Qvector> nextQ = V.stream().map(d -> d.clone()).collect(toCollection(ArrayList::new));
 				// nextQ.addAll(clas.getQ());
 				ParetoQvector paretoQ = new ParetoQvector();
 
@@ -1140,17 +1140,14 @@ public class NXCS {
 
 			child1.numerosity = child2.numerosity = 1;
 			child1.experience = child2.experience = 0;
+			child1.initiateAfterCopied(params);
+			child2.initiateAfterCopied(params);
 
 			if (XienceMath.random() < params.crossoverRate) {
 				crossover(child1, child2);
 				child1.prediction = child2.prediction = (parent1.prediction + parent2.prediction) / 2;
 				child1.error = child2.error = 0.25 * (parent1.error + parent2.error) / 2;
 				child1.fitness = child2.fitness = 0.1 * (parent1.fitness + parent2.fitness) / 2;
-				child1.initiateAfterCopied();
-
-				child2.initiateAfterCopied();
-				System.out.println("Copied 1 children from classifer:" + parent1 + "==>" + child1);
-				System.out.println("Copied 1 children from classifer:" + parent2 + "==>" + child2);
 			}
 
 			Classifier[] children = new Classifier[] { child1, child2 };

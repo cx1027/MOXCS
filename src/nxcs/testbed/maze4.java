@@ -348,7 +348,7 @@ public class maze4 implements Environment {
 		BufferedWriter writer = null;
 
 		// create a temporary file
-		String timeLog = new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime());
+		String timeLog = new SimpleDateFormat("yyyyMMdd").format(Calendar.getInstance().getTime());//yyyyMMdd_HHmmss
 		File logFile = new File(timeLog);
 
 		writer = new BufferedWriter(new FileWriter(logFile));

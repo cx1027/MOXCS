@@ -1,4 +1,7 @@
 package nxcs;
+import static java.util.stream.Collectors.*;
+
+import static java.util.stream.Collectors.toCollection;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,25 +25,23 @@ public class MinDistanceV {
 	}
 
 	public void setAvgDis(double distance) {
-		//TODO:UPDATE
-		sumDistance+=distance;
-		this.avgDis = sumDistance / exp;
+		sumDistance += distance;
+		this.avgDis = sumDistance / (exp + 1);
 	}
 
 	public ArrayList<Qvector> getNewV() {
 		return newV;
 	}
+//
+//	public void setNewV(ArrayList<Qvector> v) {
+//		newV = v;
+//	}
 
-	public void setNewV(ArrayList<Qvector> v) {
-		newV = v;
-	}
-
-	public MinDistanceV(ArrayList<Qvector> V) {
-		this.newV = new ArrayList<Qvector>(V);
+	public MinDistanceV(ArrayList<Qvector> v) {
+		this.newV = v.stream().map(d -> d.clone()).collect(toCollection(ArrayList::new));
 		this.exp = 0;
 		this.avgDis = 0;
-		this.sumDistance=0;
-
+		this.sumDistance = 0;
 	}
 
 	@Override

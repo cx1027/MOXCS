@@ -1,5 +1,7 @@
 package nxcs;
 
+import static java.util.stream.Collectors.toCollection;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
@@ -7,9 +9,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.stream.IntStream;
-
-import com.rits.cloning.Cloner;
+import java.util.stream.IntStream; 
 
 /**
  * A classifier in the NXCS system. Note that this is only a small change from a
@@ -120,7 +120,11 @@ public class Classifier implements Serializable {
 		Vset.add(new MinDistanceV(v));
 	}
 
-	private int sumExp() {
+	
+	public ArrayList<MinDistanceV> getVset() {
+		return Vset;
+	}
+	public int sumExp() {
 		int sumExp = 0;
 		for (MinDistanceV m : this.Vset) {
 			sumExp += m.getExp();
@@ -132,10 +136,7 @@ public class Classifier implements Serializable {
 		minDistance dis = new minDistance();
 		boolean flag = false;
 		// if Vset empty
-		int sum1 = this.sumExp();
-
 		if (Vset.size() < 1) {
-
 			flag = false;
 
 		} else {
@@ -146,8 +147,7 @@ public class Classifier implements Serializable {
 					flag = true;
 				}
 				minDisV.setAvgDis(dis.getJDistance(P, minDisV.getNewV()));
-
-				System.out.println("VSET P:" + P + " v:" + v + "VSET avgDis:" + minDisV.getAvgDis());
+//				System.out.println("VSET P:" + P + " v:" + v + "VSET avgDis:" + minDisV.getAvgDis());
 			}
 		}
 		// if v doenst match any of Vset
@@ -158,25 +158,17 @@ public class Classifier implements Serializable {
 			Vset.add(temp);
 		}
 
-		
-		
 		chooseV();
-		
-		System.out.println("v:" + v);
-		System.out.println("vSET:" + Vset);
-		System.out.println("V:" + V);
-		int sum2 = this.sumExp();
-		System.out.println("sum before:" + sum1 + "Sum after:" + sum2);
 	}
 
 	private void chooseV() {
 		Collections.sort(Vset, (a, b) -> (int) ((a.getAvgDis() - b.getAvgDis()) * 10024));
 
-//		if (V.size() == 0) {
-//			V.addAll(Vset.get(0).getNewV());
-//		} else {
-//			V = Vset.get(0).getNewV();
-//		}
+		// if (V.size() == 0) {
+		// V.addAll(Vset.get(0).getNewV());
+		// } else {
+		// V = Vset.get(0).getNewV();
+		// }
 		V.clear();
 		V.addAll(Vset.get(0).getNewV());
 	}
@@ -242,9 +234,9 @@ public class Classifier implements Serializable {
 		timestamp = 0;
 		averageSize = 1;
 		numerosity = 1;
-		R = params.intR;
-		Q = params.intQ;
-		V = params.intV;
+		R = new Qvector(params.intR);
+		Q = params.intQ.stream().map(d -> d.clone()).collect(toCollection(ArrayList::new));;
+		V = params.intV.stream().map(d -> d.clone()).collect(toCollection(ArrayList::new));;
 		Vset = new ArrayList<MinDistanceV>();
 
 		// Build from the state
@@ -288,10 +280,10 @@ public class Classifier implements Serializable {
 		}
 
 		condition = build.toString();
-
-		if (XienceMath.random() < mutationRate) {
-			action = XienceMath.randomInt(numActions);
-		}
+//TODO:temptemp
+//		if (XienceMath.random() < mutationRate) {
+//			action = XienceMath.randomInt(numActions);
+//		}
 	}
 
 	/**
@@ -412,14 +404,15 @@ public class Classifier implements Serializable {
 	// return build.toString();
 	// }
 
-	public void initiateAfterCopied()
-	{
+	public void initiateAfterCopied(NXCSParameters params) {
 		this.Vset.clear();
 		ArrayList<Qvector> iniV1 = new ArrayList<Qvector>();
 		iniV1.add(new Qvector(-10, -10));
 		this.setInitV(iniV1);
+		this.R =  new Qvector(params.intR);
+		this.Q = params.intQ.stream().map(d -> d.clone()).collect(toCollection(ArrayList::new));
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

@@ -11,21 +11,21 @@ public class Qvector {
 	public Qvector(List<Double> qValue) {
 		this.qValue = new ArrayList<Double>(qValue);// 解决arraylist值引用的问题
 	}
-	
+
 	public Qvector(Qvector q) {
 		this.qValue = new ArrayList<Double>(q.getQvalue());// 解决arraylist值引用的问题
 	}
 
 	public Qvector() {
 	}
-	
+
 	public Qvector(double a, double b) {
 		qValue = new ArrayList<Double>();
 		qValue.add(a);
 		qValue.add(b);
 	}
-	
-	public Qvector(double a, double b , double c) {
+
+	public Qvector(double a, double b, double c) {
 		qValue = new ArrayList<Double>();
 		qValue.add(a);
 		qValue.add(b);
@@ -39,8 +39,6 @@ public class Qvector {
 	public void setQvalue(List<Double> q) {
 		this.qValue = qValue;
 	}
-	
-
 
 	public int size() {
 		// TODO Auto-generated method stub
@@ -62,8 +60,13 @@ public class Qvector {
 		}
 		return true;
 	}
-	
-	
+
+	@Override
+	public Qvector clone() {
+		Qvector clone = new Qvector(this.qValue);
+		return clone;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -87,9 +90,9 @@ public class Qvector {
 		}
 
 	}
-	
-	public Double get(int i){
+
+	public Double get(int i) {
 		return qValue.get(i);
-	
+
 	}
 }
