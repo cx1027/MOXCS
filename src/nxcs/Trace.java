@@ -148,7 +148,7 @@ public class Trace {
 		listVA = getParetoVnR(matchSet);
 		
 		Point xy = env.getxy();
-		System.out.println(String.format("XY**************", xy));
+		System.out.println(String.format("XY**************"+xy));
 		
 		for (int i = 0; i < listVA.size(); i++) {
 			System.out.println(String.format("trace:"+i));
@@ -184,7 +184,7 @@ public class Trace {
 			System.out.println("x:y:" + env.getxy());
 
 			// main loop
-			while (true && count < 30) {
+			while (true && count < 50) {
 				if (env.isEndOfProblem(env.getState())) {
 //					env.resetPosition();
 					env.resetToSamePosition(xy);
@@ -202,6 +202,7 @@ public class Trace {
 					// curTargetAQ+"curState "+curStateReward.getState());
 					curStateReward = env.getReward(env.getState(), TA.getAction());
 					System.out.println("***move to State:" + "x:y:" + env.getxy() + "****###nextTarget:" + TA);
+					count++;
 
 				}
 			}

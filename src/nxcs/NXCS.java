@@ -840,30 +840,30 @@ public class NXCS {
 		ArrayList<Qvector> V = new ArrayList<Qvector>();
 
 		// 51-61F
-		if (previousState.equals("110110110000111110000000") && currentState.equals("110110110000110000000110")) {
-			List<Classifier> C = generateMatchSet(previousState);
-
-			List<Classifier> A = C.stream().filter(b -> b.action == 2).collect(Collectors.toList());
-			Collections.sort(A, (a, b) -> (int) ((a.fitness - b.fitness) * 10024));
-			if (A.size() >= 1) {
-				System.out.println("51:" + A);
-
-			}
-
-		}
+//		if (previousState.equals("110110110000111110000000") && currentState.equals("110110110000110000000110")) {
+//			List<Classifier> C = generateMatchSet(previousState);
+//
+//			List<Classifier> A = C.stream().filter(b -> b.action == 2).collect(Collectors.toList());
+//			Collections.sort(A, (a, b) -> (int) ((a.fitness - b.fitness) * 10024));
+//			if (A.size() >= 1) {
+//				System.out.println("51:" + A);
+//
+//			}
+//
+//		}
 		// 21-21
-		if (previousState.equals("110110110000110110000000") && currentState.equals("110110110000110110000000")) {
-
-			List<Classifier> C = generateMatchSet(previousState);
-
-			List<Classifier> A = C.stream().filter(b -> b.action == 2).collect(Collectors.toList());
-			Collections.sort(A, (a, b) -> (int) ((a.fitness - b.fitness) * 10024));
-			if (A.size() >= 1) {
-				// System.out.println("21:" + A.get(A.size() - 1));
-				System.out.println("21:" + A);
-			}
-
-		}
+//		if (previousState.equals("110110110000110110000000") && currentState.equals("110110110000110110000000")) {
+//
+//			List<Classifier> C = generateMatchSet(previousState);
+//
+//			List<Classifier> A = C.stream().filter(b -> b.action == 2).collect(Collectors.toList());
+//			Collections.sort(A, (a, b) -> (int) ((a.fitness - b.fitness) * 10024));
+//			if (A.size() >= 1) {
+//				// System.out.println("21:" + A.get(A.size() - 1));
+//				System.out.println("21:" + A);
+//			}
+//
+//		}
 		// Calculate P, if P at the eop, then P=R of finalstate; if normal point
 		// P=r+Q'+R'
 		if (env.isEndOfProblem(currentState)) {
@@ -876,28 +876,28 @@ public class NXCS {
 			// TODO: UPDATE getParetoVVector, get high ave dis V
 			VA = getParetoVVector(generateMatchSet(currentState));
 			// if(previousState.equals("110110110000110110000000")&&currentState.equals("000000110110000110000110")&&VA.size()>1){
-			if (currentState.equals("110110110000110110000000") && VA.size() > 1) {
-				List<Classifier> C = new ArrayList<Classifier>();
-				C = generateMatchSet(currentState);
-				for (int m = 0; m < 4; m++) {
-					final int act = m;
-					List<Classifier> A = C.stream().filter(b -> b.action == act).collect(Collectors.toList());
-					Collections.sort(A, (a, b) -> (int) ((a.fitness - b.fitness) * 10024));
-					System.out.println("22:" + m + ": " + A.get(A.size() - 1));
-					System.out.println("22:" + m + ": " + A);
-
-				}
-
-			}
+//			if (currentState.equals("110110110000110110000000") && VA.size() > 1) {
+//				List<Classifier> C = new ArrayList<Classifier>();
+//				C = generateMatchSet(currentState);
+//				for (int m = 0; m < 4; m++) {
+//					final int act = m;
+//					List<Classifier> A = C.stream().filter(b -> b.action == act).collect(Collectors.toList());
+//					Collections.sort(A, (a, b) -> (int) ((a.fitness - b.fitness) * 10024));
+//					System.out.println("22:" + m + ": " + A.get(A.size() - 1));
+//					System.out.println("22:" + m + ": " + A);
+//
+//				}
+//
+//			}
 
 			for (ActionPareto v : VA) {
 				V.add(v.getPareto());
-				if (Math.abs(v.getPareto().get(0) * 10 % 10) > 0) {
-					System.out.println("clas.getV():" + v);
-				}
-				if ((v.getPareto().get(1) == 1) && (v.getPareto().get(0) == -1)) {
-					System.out.println("clas.getV():" + v);
-				}
+//				if (Math.abs(v.getPareto().get(0) * 10 % 10) > 0) {
+//					System.out.println("clas.getV():" + v);
+//				}
+//				if ((v.getPareto().get(1) == 1) && (v.getPareto().get(0) == -1)) {
+//					System.out.println("clas.getV():" + v);
+//				}
 			}
 			// System.out.println("unique V of curState:" + V);
 
@@ -974,8 +974,8 @@ public class NXCS {
 				// clas.getV())+" clas.experience"+clas.experience);
 				// }
 				clas.error = clas.error + (dis.getJDistance(P, clas.getV()) - clas.error) / clas.experience;
-				System.out.println(
-						"CLAS P:" + P + "CLAS V:" + clas.getV() + "CLAS DIS:" + dis.getJDistance(P, clas.getV()));
+//				System.out.println(
+//						"CLAS P:" + P + "CLAS V:" + clas.getV() + "CLAS DIS:" + dis.getJDistance(P, clas.getV()));
 				// System.out.println("clas.error after:" + clas.error);
 			} else {
 				clas.averageSize = clas.averageSize + (setNumerosity - clas.numerosity) * params.beta;
@@ -1153,12 +1153,12 @@ public class NXCS {
 			Classifier[] children = new Classifier[] { child1, child2 };
 			for (Classifier child : children) {
 				child.mutate(state, params.mutationRate, params.numActions);
-				if (flagga == false) {
-					child.condition = "11011011000011#110000000";
-					child.action = 2;
-					System.out.println("clas:" + child);
-					flagga = true;
-				}
+//				if (flagga == false) {
+//					child.condition = "11011011000011#110000000";
+//					child.action = 2;
+//					System.out.println("clas:" + child);
+//					flagga = true;
+//				}
 				// if (i==2){
 				// child.condition="11011011#110000110110000";
 				// child.action=2;}

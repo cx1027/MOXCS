@@ -21,6 +21,7 @@ import java.util.TreeMap;
 
 import com.rits.cloning.Cloner;
 
+import nxcs.ActionPareto;
 import nxcs.Classifier;
 import nxcs.Environment;
 import nxcs.NXCS;
@@ -356,7 +357,7 @@ public class DSTF_TraceReset_Full_num implements Environment {
 	 */
 	@Override
 	public String getState() {
-		System.out.println(String.format("x,y:%d %d", x, y));
+//		System.out.println(String.format("x,y:%d %d", x, y));
 		return getStringForState(x, y);
 	}
 
@@ -369,9 +370,9 @@ public class DSTF_TraceReset_Full_num implements Environment {
 	 */
 	@Override
 	// return reward and state????????
-	public Qvector getReward(String state, int action) {
+	public ActionPareto getReward(String state, int action) {
 		count++;
-		Qvector reward = new Qvector(-1, 0);
+		ActionPareto reward = new ActionPareto(new Qvector(-1, 0), 1);
 
 		Point movement = actions.get(action);
 		if (isValidPosition(x + movement.x, y + movement.y)) {
@@ -388,58 +389,60 @@ public class DSTF_TraceReset_Full_num implements Environment {
 		
 		
 		if(x==1&&y==2){
-			reward = new Qvector(-1, 1);
+			reward.setPareto(new Qvector(-1, 1));
 			//resetPosition();
 		}
 		
 		if(x==2&&y==3){
-			reward = new Qvector(-1, 2);
+			reward.setPareto(new Qvector(-1, 2));
 			//resetPosition();
 		}
 		
 		if(x==3&&y==4){
-			reward = new Qvector(-1, 3);
+			reward.setPareto(new Qvector(-1, 3));
 			//resetPosition();
 		}
 		
 		if(x==4&&y==5){
-			reward = new Qvector(-1, 5);
+			reward.setPareto(new Qvector(-1, 5));
 			//resetPosition();
 		}
 		
 		if(x==5&&y==5){
-			reward = new Qvector(-1, 8);
+			reward.setPareto(new Qvector(-1, 8));
 			//resetPosition();
 		}
 		
 		if(x==6&&y==5){
-			reward = new Qvector(-1, 16);
+			reward.setPareto(new Qvector(-1, 16));
 			//resetPosition();
 		}
 		
 		if(x==7&&y==8){
-			reward = new Qvector(-1, 24);
+			reward.setPareto(new Qvector(-1, 24));
 			//resetPosition();
 		}
 		
 		if(x==8&&y==8){
-			reward = new Qvector(-1, 50);
+			reward.setPareto(new Qvector(-1, 50));
 			//resetPosition();
 		}
 		
 		if(x==9&&y==10){
-			reward = new Qvector(-1, 74);
+			reward.setPareto(new Qvector(-1, 74));
 			//resetPosition();
 		}
 		
 		if(x==10&&y==11){
-			reward = new Qvector(-1, 124);
+			reward.setPareto(new Qvector(-1, 124));
 			//resetPosition();
 		}
 
 		if (count > 100) {
 			resetPosition();
-			return new Qvector(-1, 0);
+//			System.out.println("reset_position");
+			reward.setAction(5);
+			reward.setPareto(new Qvector(-1, 0));
 		}
 
 		return reward;
@@ -463,7 +466,7 @@ public class DSTF_TraceReset_Full_num implements Environment {
 		for (Point finalState : finalStates) {
 			if (getStringForState(finalState.x, finalState.y).equals(state)) {
 				if(finalState.x== x&&finalState.y== y){
-				System.out.println(String.format("finalx,finaly:%d %d", finalState.x, finalState.y));
+//				System.out.println(String.format("finalx,finaly:%d %d", finalState.x, finalState.y));
 				return true;}
 			}
 		}
@@ -729,6 +732,12 @@ public class DSTF_TraceReset_Full_num implements Environment {
 			timestamp++;
 		}
 		return resultMap;
+	}
+
+	@Override
+	public void resetToSamePosition(Point point) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

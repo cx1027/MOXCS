@@ -10,13 +10,16 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import com.rits.cloning.Cloner;
 
+import nxcs.ActionPareto;
 import nxcs.Classifier;
 import nxcs.Environment;
 import nxcs.NXCS;
@@ -78,6 +81,8 @@ public class DST_Trace implements Environment {
 	private int count;
 
 	private Cloner cloner;
+	
+	public static List<Integer> act = new ArrayList<Integer>();
 
 	/**
 	 * Loads a maze from the given maze file
@@ -106,11 +111,6 @@ public class DST_Trace implements Environment {
 		encodingTable.put('T', "110");
 		encodingTable.put(null, "100");// For out of the maze positions
 		encodingTable.put('F', "111");
-
-		encodingTable.put('1', "001");
-		encodingTable.put('3', "011");
-		encodingTable.put('5', "101");
-		encodingTable.put('8', "010");
 
 		openLocations = new ArrayList<Point>();
 		finalStates = new ArrayList<Point>();
@@ -177,10 +177,16 @@ public class DST_Trace implements Environment {
 
 	// update start from 1,1
 	public void resetPosition() {
-		x = 1;
-		y = 1;
-		count = 0;
+		Point randomOpenPoint = XienceMath.choice(openLocations);
+		 x = randomOpenPoint.x;
+		 y = randomOpenPoint.y;
+		 count = 0;
+//		x = 1;
+//		y = 1;
+//		count = 0;
 	}
+	
+	
 
 	/**
 	 * Returns the two-bit encoding for the given position in the maze
@@ -191,13 +197,22 @@ public class DST_Trace implements Environment {
 	 *            The y position in the maze to get
 	 * @return The two-bit encoding of the given position
 	 */
-	private String getEncoding(int x, int y) {
-		if (x < 0 || y < 0 || y >= mazeTiles.length || x >= mazeTiles[0].length) {
-			return encodingTable.get(null);
-		} else {
-			return encodingTable.get(mazeTiles[y][x]);
+//	private String getEncoding(int x, int y) {
+//		if (x < 0 || y < 0 || y >= mazeTiles.length || x >= mazeTiles[0].length) {
+//			return encodingTable.get(null);
+//		} else {
+//			return encodingTable.get(mazeTiles[y][x]);
+//
+//		}
+//	}
+	
+	private String getEncoding(int x) {
+//		if (x < 0 || y < 0 || y >= mazeTiles.length || x >= mazeTiles[0].length) {
+//			return encodingTable.get(null);
+//		} else {
+			return encodingTable.get(x);
 
-		}
+//		}
 	}
 
 	/**
@@ -210,22 +225,29 @@ public class DST_Trace implements Environment {
 	 *            The y position of the state to get the encoding for
 	 * @return The binary representation of the given state
 	 */
+//	private String getStringForState(int x, int y) {
+//		StringBuilder build = new StringBuilder();
+//		for (int dy = -1; dy <= 1; dy++) {
+//			for (int dx = -1; dx <= 1; dx++) {
+//				if (dx == 0 && dy == 0)
+//					continue;
+//				build.append(getEncoding(x + dx, y + dy));
+//			}
+//		}
+//		// state of energy, used in energy maze
+//		// if (energy>0.5){
+//		// build.append(1);
+//		// }
+//		// else{
+//		// build.append(0);
+//		// }
+//		return build.toString();
+//	}
+	
 	private String getStringForState(int x, int y) {
 		StringBuilder build = new StringBuilder();
-		for (int dy = -1; dy <= 1; dy++) {
-			for (int dx = -1; dx <= 1; dx++) {
-				if (dx == 0 && dy == 0)
-					continue;
-				build.append(getEncoding(x + dx, y + dy));
-			}
-		}
-		// state of energy, used in energy maze
-		// if (energy>0.5){
-		// build.append(1);
-		// }
-		// else{
-		// build.append(0);
-		// }
+		build.append(getEncoding(x));
+		build.append(getEncoding(y));
 		return build.toString();
 	}
 
@@ -249,7 +271,7 @@ public class DST_Trace implements Environment {
 	 */
 	@Override
 	public String getState() {
-		System.out.println(String.format("x,y:%d %d", x, y));
+//		System.out.println(String.format("x,y:%d %d", x, y));
 		return getStringForState(x, y);
 	}
 
@@ -262,26 +284,78 @@ public class DST_Trace implements Environment {
 	 */
 	@Override
 	// return reward and state????????
-	public Qvector getReward(String state, int action) {
+	public ActionPareto getReward(String state, int action) {
 		count++;
-		Qvector reward = new Qvector(-1, 0);
+		ActionPareto reward = new ActionPareto(new Qvector(-1, 0), 1);
 
 		Point movement = actions.get(action);
 		if (isValidPosition(x + movement.x, y + movement.y)) {
 			x += movement.x;
 			y += movement.y;
 
-			if (mazeTiles[y][x] != 'T') {
-				for (Reward r : rewardGrid) {
-					if (r.getState().getX() == x && r.getState().getY() == y)
-						reward = r.getRewardVec();
-				}
-			}
+			// if (mazeTiles[y][x] != 'T') {
+			// for (Reward r : rewardGrid) {
+			// if (r.getState().getX() == x && r.getState().getY() == y)
+			// reward = r.getRewardVec();
+			// }
+			// }
+		}
+
+		if(x==1&&y==2){
+			reward.setPareto(new Qvector(-1, 1));
+			//resetPosition();
+		}
+		
+		if(x==2&&y==3){
+			reward.setPareto(new Qvector(-1, 2));
+			//resetPosition();
+		}
+		
+		if(x==3&&y==4){
+			reward.setPareto(new Qvector(-1, 3));
+			//resetPosition();
+		}
+		
+		if(x==4&&y==5){
+			reward.setPareto(new Qvector(-1, 5));
+			//resetPosition();
+		}
+		
+		if(x==5&&y==5){
+			reward.setPareto(new Qvector(-1, 8));
+			//resetPosition();
+		}
+		
+		if(x==6&&y==5){
+			reward.setPareto(new Qvector(-1, 16));
+			//resetPosition();
+		}
+		
+		if(x==7&&y==8){
+			reward.setPareto(new Qvector(-1, 24));
+			//resetPosition();
+		}
+		
+		if(x==8&&y==8){
+			reward.setPareto(new Qvector(-1, 50));
+			//resetPosition();
+		}
+		
+		if(x==9&&y==10){
+			reward.setPareto(new Qvector(-1, 74));
+			//resetPosition();
+		}
+		
+		if(x==10&&y==11){
+			reward.setPareto(new Qvector(-1, 124));
+			//resetPosition();
 		}
 
 		if (count > 100) {
 			resetPosition();
-			return new Qvector(-1, 0);
+//			System.out.println("reset_position");
+			reward.setAction(5);
+			reward.setPareto(new Qvector(-1, 0));
 		}
 
 		return reward;
@@ -304,7 +378,7 @@ public class DST_Trace implements Environment {
 	public boolean isEndOfProblem(String state) {
 		for (Point finalState : finalStates) {
 			if (getStringForState(finalState.x, finalState.y).equals(state)) {
-				System.out.println(String.format("finalx,finaly:%d %d", finalState.x, finalState.y));
+				//System.out.println(String.format("finalx,finaly:%d %d", finalState.x, finalState.y));
 				return true;
 				// }
 			}
@@ -318,11 +392,16 @@ public class DST_Trace implements Environment {
 		BufferedWriter writer = null;
 
 		// create a temporary file
-		String timeLog = new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime());
+		String timeLog = new SimpleDateFormat("yyyyMMdd").format(Calendar.getInstance().getTime());//yyyyMMdd_HHmmss
 		File logFile = new File(timeLog);
 
 		writer = new BufferedWriter(new FileWriter(logFile));
 		int totalCalcTimes = 1;
+
+		act.add(0);
+		act.add(1);
+		act.add(2);
+		act.add(3);
 
 		try {
 
@@ -330,25 +409,27 @@ public class DST_Trace implements Environment {
 				System.out.println(String.format("--------------------- begin to run %d----------------------", z));
 				Map<Integer, Double> innerList = new HashMap<Integer, Double>();
 
-				DST_Trace maze = new DST_Trace("data/DST.txt");
-				maze.resetPosition();
+				DST_Trace dst = new DST_Trace("data/DSTF3bit.txt");
+				// maze.resetPosition();
+				dst.resetToSamePosition(new Point(5, 1));
 
 				NXCSParameters params = new NXCSParameters();
 				// Another set of parameters Woods1, Woods101
 
 				params.N = 1600;
-				params.stateLength = 24;
+				params.stateLength = 8;
 				params.numActions = 4;
 				params.rho0 = 1000;
 				params.pHash = 0.;
-//				params.pHash = 0.5;
-				params.gamma = 0.8;
+				params.gamma = 0.5;
 				params.crossoverRate = 0.8;
 				params.mutationRate = 0.04;
 				params.thetaMNA = 4;
 				params.thetaGA = 500;
-				params.e0 = 10;
-				params.thetaDel = 20;
+//				params.thetaGA = 0;
+				//params.e0 = 0.05;
+				params.e0 = 0.05;
+				params.thetaDel = 200;
 				params.doActionSetSubsumption = false;
 				params.doGASubsumption = false;
 
@@ -366,51 +447,68 @@ public class DST_Trace implements Environment {
 
 				// NOTE: These parameters are not complete.
 
-				NXCS nxcs = new NXCS(maze, params);
-				Trace trace = new Trace(maze, params);
-				int finalStateCount = 0;
+				NXCS nxcs = new NXCS(dst, params);
+				Trace trace = new Trace(dst, params);
+				int finalStateCount = 1;
 				boolean logged = false;
 
-				int i = 0;
-				while (finalStateCount < 1001) {
-					nxcs.runIteration(i, maze.getState());
+				int i = 1;
+				while (finalStateCount < 1501) {
+					nxcs.runIteration(finalStateCount, dst.getState());
 					i++;
 
-					if (finalStateCount % 1000 == 0 && !logged) {
+					if (finalStateCount % 2000 == 0 && !logged) {
 						// average for z, eg.if z=2, then
 						// result50=(result50[1]+restuls50[2])/z, then
 						// result100, 150...800
-						System.out.println(String.format("org**************", finalStateCount));
-						for (Map.Entry<Point, Result> entry : maze.GetResult(maze, nxcs).entrySet()) {
-							Point key = entry.getKey();
-							Result value = entry.getValue();
-							System.out.println(String.format("Result is :(%d,%d) ", key.x, key.y) + value.toString());
-						}
+//						System.out.println(String.format("org**************" + finalStateCount));
+//						for (Map.Entry<Point, Result> entry : maze.GetResult(maze, nxcs).entrySet()) {
+//							Point key = entry.getKey();
+//							Result value = entry.getValue();
+//							System.out.println(String.format("Result is :(%d,%d) ", key.x, key.y) + value.toString());
+//						}
 
 						// innerList.put(finalStateCount, result);
 						//
 						// System.out.println(result);
 						// writer.write(String.format("%5.3f", result));
 						// writer.newLine();
-						 logged = true;
+						logged = true;
 					}
 
 					// run function below every 50 steps
-					if (maze.isEndOfProblem(maze.getState())) {
-						maze.resetPosition();
-						if(finalStateCount==9||finalStateCount==3||finalStateCount==5){
-							System.out.println("finalStateCount:"+finalStateCount+":print classifiers for each openlocations");
-							for (Point p : maze.openLocations) {
-								System.out.println("x:" + p.x + " y:" + p.y);
-								List<Classifier> C = nxcs.getMatchSet(maze.getStringForState(p.x, p.y));
-								for (Classifier c : C) {
-									System.out.println("clas: " + c);
-								}
+					if (dst.isEndOfProblem(dst.getState())) {
+						dst.resetPosition();
+//						if (finalStateCount < 1) {
+//							maze.resetToSamePosition(new Point(5, 1));
+//						}
+//						if (finalStateCount >= 1) {
+//							maze.resetToSamePosition(new Point(2, 1));
+//						}
 
-							}
-						
-						
-						}
+//						if (finalStateCount == 10 || finalStateCount == 20 || finalStateCount == 30|| finalStateCount == 40|| finalStateCount == 50
+//								|| finalStateCount == 60 || finalStateCount == 70|| finalStateCount == 80 || finalStateCount == 90|| finalStateCount == 100
+//								|| finalStateCount == 110 || finalStateCount == 120|| finalStateCount == 130 || finalStateCount == 140|| finalStateCount == 150) {
+//						if (finalStateCount == 499){	
+//						   System.out.println(
+//									"finalStateCount:" + finalStateCount + ":print classifiers for each openlocations");
+//							for (Point p : maze.openLocations) {
+//								System.out.println("x:" + p.x + " y:" + p.y);
+//
+//								List<Classifier> C = nxcs.getMatchSet(maze.getStringForState(p.x, p.y));
+//								for (int action : act) {
+//									
+//										List<Classifier> A = C.stream().filter(b -> b.action == action)
+//												.collect(Collectors.toList());
+//										Collections.sort(A, (a, b) -> (int) ((a.fitness - b.fitness) * 10024));
+//										if(A.size()>=1){
+//										System.out.println(A.get(A.size() - 1));}
+//									
+//								}
+//
+//							}
+//
+//						}
 
 						finalStateCount++;
 						logged = false;
@@ -422,28 +520,48 @@ public class DST_Trace implements Environment {
 
 				// print classifiers for each openlocations
 				System.out.println("print classifiers for each openlocations");
-				for (Point p : maze.openLocations) {
+				for (Point p : dst.openLocations) {
 					System.out.println("x:" + p.x + " y:" + p.y);
-					List<Classifier> C = nxcs.getMatchSet(maze.getStringForState(p.x, p.y));
-					for (Classifier c : C) {
-						System.out.println("clas: " + c);
-					}
+					List<Classifier> C = nxcs.getMatchSet(dst.getStringForState(p.x, p.y));
+//					for (Classifier c : C) {
+//						System.out.println("clas: " + c);
+//					}
+					for (int action : act) {
+						
+						List<Classifier> A = C.stream().filter(b -> b.action == action)
+								.collect(Collectors.toList());
+						Collections.sort(A, (a, b) -> (int) ((a.fitness - b.fitness) * 10024));
+						if(A.size()>=1){
+						System.out.println(A.get(A.size() - 1));}
+					
+				}
 
 				}
-				
-				System.out.println("num of classifiers"+ nxcs.getPopulation().size());
-                
 
-				int count = 30;
+//				 int count = 30;
+//				 System.out.println(String.format("trace**************",
+//				 finalStateCount));
+//				 for (int i1 = 0; i1 < count; i1++) {
+//				// maze.x=1;
+//				// maze.y=1;
+//				 maze.resetPosition();
+//				 System.out.println(String.format("START*************"));
+//				 String startState = maze.getState();
+//				 trace.traceStart(startState, nxcs);
+//				 i1++;
+//				 }
+
+				// TRACE IN TURN!!!!!!!!!!!!!!!!!!!!!!!!!
 				System.out.println(String.format("trace**************", finalStateCount));
-				for (int i1 = 0; i1 < count; i1++) {
-					maze.x=1;
-					maze.y=1;
-					String startState = maze.getState();
+				for (Point p : dst.openLocations) {
+
+					dst.resetToSamePosition(p);
+					System.out.println(String.format("START TARCE*************" + "POINT:" + p));
+					String startState = dst.getState();
 					trace.traceStart(startState, nxcs);
-					i1++;
+
 				}
-				
+
 				tempList.put(z, innerList);
 			} // endof z loop
 
@@ -481,6 +599,7 @@ public class DST_Trace implements Environment {
 			}
 		} // endof try
 	}
+
 
 	// private double GetResult(DST maze, NXCS nxcs) {
 	// int finalStateCount2 = 0;
@@ -570,6 +689,12 @@ public class DST_Trace implements Environment {
 			timestamp++;
 		}
 		return resultMap;
+	}
+
+	@Override
+	public void resetToSamePosition(Point point) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }
