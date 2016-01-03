@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+//import xcs.testbed.Range;
+
 /**
  * A classifier in the NXCS system. Note that this is only a small change from a
  * classifier in XCS in that we have only added the `theta` field below. Note
@@ -440,6 +442,18 @@ public class Classifier implements Serializable {
 		this.setInitV(iniV1);
 		this.R = new Qvector(params.intR);
 		this.Q = params.intQ.stream().map(d -> d.clone()).collect(toCollection(ArrayList::new));
+	}
+
+	public int wildcardCount() {
+		int count = 0;
+		for (int i = 0; i < condition.length(); i++) {
+			if (condition.charAt(i)=='#') {
+				count++;
+			}
+			
+		}
+
+		return count;
 	}
 
 	@Override
