@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import com.rits.cloning.Cloner;
 
+import nxcs.stats.StepSnapshot;
 import nxcs.testbed.DST_Trace;
 
 public class Trace {
@@ -132,7 +133,7 @@ public class Trace {
 		return ParetoDotwithA;
 	}
 
-	public void traceStart(String startState, NXCS nxcs) throws IOException {
+	public ArrayList<StepSnapshot> traceStart(String startState, NXCS nxcs){
 		// int count = 0;
 		// ActionPareto TA = null;
 		List<ActionPareto> listVA = new ArrayList<ActionPareto>();
@@ -141,30 +142,33 @@ public class Trace {
 		// addVectorNList minus = new addVectorNList();
 		// Random randomGenerator = new Random();
 		// NXCS nxcs = new NXCS(env, params);
+		ArrayList<StepSnapshot> locStats = new ArrayList<StepSnapshot>();
 
 		List<Classifier> matchSet = nxcs.getPopulation().stream()
 				.filter(c -> nxcs.stateMatches(c.condition, startState)).collect(Collectors.toList());
 		// get paertoV---get Q of paretoV---select one Q as target
 		listVA = getParetoVnR(matchSet);
-		
+
 		Point xy = env.getxy();
-		System.out.println(String.format("XY**************"+xy));
-		
+		System.out.println(String.format("XY**************" + xy));
+
 		for (int i = 0; i < listVA.size(); i++) {
-			System.out.println(String.format("trace:"+i));
-			tracetoFinalState(i, listVA, startState, nxcs, xy);
+			System.out.println(String.format("trace:" + i));
+			locStats.add(tracetoFinalState(i, listVA, startState, nxcs, xy));
 		}
 
 		// int i = randomGenerator.nextInt(listVA.size());
 
-		// return TA;
+		return locStats;
 	}
 
-	public void tracetoFinalState(int i, List<ActionPareto> listVA, String startState, NXCS nxcs,Point xy) {
+	public StepSnapshot tracetoFinalState(int i, List<ActionPareto> listVA, String startState, NXCS nxcs, Point xy) {
 		ActionPareto TA = null;
 		addVectorNList minus = new addVectorNList();
 		int action = 0;
 		int count = 0;
+		StepSnapshot s3 = null;
+		ArrayList<Point> path = new ArrayList<Point>();
 
 		while (TA == null) {
 			if (!(listVA.get(i).getPareto().equals(new Qvector(0, 0)))) {
@@ -186,10 +190,11 @@ public class Trace {
 			// main loop
 			while (true && count < 50) {
 				if (env.isEndOfProblem(env.getState())) {
-//					env.resetPosition();
-					env.resetToSamePosition(xy);
 					System.out.println("****###finalState:" + startState);
 					count++;
+					s3 = new StepSnapshot(xy, env.getxy(), count, path);
+					// env.resetPosition();
+					env.resetToSamePosition(xy);
 					break;
 
 				} else {
@@ -203,11 +208,15 @@ public class Trace {
 					curStateReward = env.getReward(env.getState(), TA.getAction());
 					System.out.println("***move to State:" + "x:y:" + env.getxy() + "****###nextTarget:" + TA);
 					count++;
-
+					path.add(env.getxy());
 				}
 			}
-
 		}
+		// cannot reach to final state within 50 steps above
+		if (s3 == null) {
+			s3 = new StepSnapshot(xy, env.getxy(), -1, path);
+		}
+		return s3;
 	}
 
 	public ActionPareto findTarget(ActionPareto curtarget, String nextState, NXCS nxcs) {

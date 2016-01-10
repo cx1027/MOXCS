@@ -34,6 +34,7 @@ import nxcs.Trace;
 import nxcs.XienceMath;
 import nxcs.stats.Snapshot;
 import nxcs.stats.StatsLogger;
+import nxcs.stats.StepSnapshot;
 
 /**
  * Represents a maze problem which is loaded in from a file. Such a file should
@@ -395,7 +396,7 @@ public class maze4_result implements Environment {
 				// NOTE: These parameters are not complete.
 
 				NXCS nxcs = new NXCS(maze, params);
-				int finalStateUpperBound = 501;
+				int finalStateUpperBound = 201;
 				Trace trace = new Trace(maze, params);
 				int finalStateCount = 1;
 				boolean logged = false;
@@ -406,12 +407,12 @@ public class maze4_result implements Environment {
 				StatsLogger logger = new StatsLogger(((finalStateUpperBound / chartIntervalLinesNumber) > 10)
 						? (finalStateUpperBound / chartIntervalLinesNumber) / 10 * 10 : 10, 0);
 
+				// System.out.println(String.format("calculate Pareto sum at
+				// every %d times", resultInterval));
 
-//				System.out.println(String.format("calculate Pareto sum at every %d times", resultInterval));
-				
-				//clear stats 
+				// clear stats
 				stats.clear();
-				//begin
+				// begin
 				while (finalStateCount < finalStateUpperBound) {
 					nxcs.runIteration(finalStateCount, maze.getState());
 
@@ -425,7 +426,8 @@ public class maze4_result implements Environment {
 
 								List<Classifier> A = C.stream().filter(b -> b.action == action)
 										.collect(Collectors.toList());
-								// Collections.sort(A, (a, b) -> (int)((a.fitness - b.fitness) * 10024));
+								// Collections.sort(A, (a, b) ->
+								// (int)((a.fitness - b.fitness) * 10024));
 								Collections.sort(A, new Comparator<Classifier>() {
 									@Override
 									public int compare(Classifier o1, Classifier o2) {
@@ -466,7 +468,8 @@ public class maze4_result implements Environment {
 					for (int action : act) {
 
 						List<Classifier> A = C.stream().filter(b -> b.action == action).collect(Collectors.toList());
-//						Collections.sort(A, (a, b) -> (int) ((a.fitness - b.fitness) * 10024));
+						// Collections.sort(A, (a, b) -> (int) ((a.fitness -
+						// b.fitness) * 10024));
 						Collections.sort(A, new Comparator<Classifier>() {
 							@Override
 							public int compare(Classifier o1, Classifier o2) {
@@ -477,9 +480,9 @@ public class maze4_result implements Environment {
 							System.out.println(A.get(A.size() - 1));
 						}
 					}
-				}//open locations
+				} // open locations
 
-				//Plot the picture of the whole result
+				// Plot the picture of the whole result
 				logger.logRun(stats);
 
 				try {
@@ -494,14 +497,7 @@ public class maze4_result implements Environment {
 
 				// TRACE IN TURN!!!!!!!!!!!!!!!!!!!!!!!!!
 				System.out.println(String.format("trace**************", finalStateCount));
-				for (Point p : maze.openLocations) {
-
-					maze.resetToSamePosition(p);
-					System.out.println(String.format("START TARCE*************" + "POINT:" + p));
-					String startState = maze.getState();
-					trace.traceStart(startState, nxcs);
-
-				}
+				maze.traceOpenLocations(maze, trace, nxcs);
 
 				tempList.put(z, innerList);
 			} // endof z loop
@@ -557,6 +553,24 @@ public class maze4_result implements Environment {
 	// }
 	// return ((double) (timestamp)) / finalStateCount2;
 	// }
+
+	private void traceOpenLocations(maze4_result maze, Trace trace, NXCS nxcs) {
+		// stats variables
+		ArrayList<ArrayList<StepSnapshot>> locStats = new ArrayList<ArrayList<StepSnapshot>>();
+
+		for (Point p : maze.openLocations) {
+			maze.resetToSamePosition(p);
+			System.out.println(String.format("START TARCE*************" + "POINT:" + p));
+			String startState = maze.getState();
+			locStats.add(trace.traceStart(startState, nxcs));
+		}
+		//print stats
+		for(ArrayList<StepSnapshot> l:locStats){
+			for(StepSnapshot s: l){
+				System.out.println(s.toString());
+			}
+		}
+	}
 
 	public HashMap<Point, Result> GetResult(maze4_result maze, NXCS nxcs) {
 		int finalStateCount2 = 0;
