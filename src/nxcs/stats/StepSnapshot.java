@@ -76,7 +76,7 @@ public class StepSnapshot {
 			for (Point p : this.path) {
 				build.append(String.format("->(%d,%d)", (int) p.getX(), (int) p.getY()));
 			}
-
+		build.append("->");
 		return build.toString();
 	}
 

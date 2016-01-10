@@ -396,7 +396,8 @@ public class maze4_result implements Environment {
 				// NOTE: These parameters are not complete.
 
 				NXCS nxcs = new NXCS(maze, params);
-				int finalStateUpperBound = 201;
+				int finalStateUpperBound = 501;
+				int traceUpperBound = 1;
 				Trace trace = new Trace(maze, params);
 				int finalStateCount = 1;
 				boolean logged = false;
@@ -497,7 +498,7 @@ public class maze4_result implements Environment {
 
 				// TRACE IN TURN!!!!!!!!!!!!!!!!!!!!!!!!!
 				System.out.println(String.format("trace**************", finalStateCount));
-				maze.traceOpenLocations(maze, trace, nxcs);
+				maze.traceOpenLocations(maze, trace, nxcs, traceUpperBound);
 
 				tempList.put(z, innerList);
 			} // endof z loop
@@ -554,20 +555,21 @@ public class maze4_result implements Environment {
 	// return ((double) (timestamp)) / finalStateCount2;
 	// }
 
-	private void traceOpenLocations(maze4_result maze, Trace trace, NXCS nxcs) {
+	private void traceOpenLocations(maze4_result maze, Trace trace, NXCS nxcs, int totalTimes) {
 		// stats variables
 		ArrayList<ArrayList<StepSnapshot>> locStats = new ArrayList<ArrayList<StepSnapshot>>();
-
-		for (Point p : maze.openLocations) {
-			maze.resetToSamePosition(p);
-			System.out.println(String.format("START TARCE*************" + "POINT:" + p));
-			String startState = maze.getState();
-			locStats.add(trace.traceStart(startState, nxcs));
-		}
-		//print stats
-		for(ArrayList<StepSnapshot> l:locStats){
-			for(StepSnapshot s: l){
-				System.out.println(s.toString());
+		for (int i = 1; i <= totalTimes; i++) {
+			for (Point p : maze.openLocations) {
+				maze.resetToSamePosition(p);
+				System.out.println(String.format("START TARCE*************" + "POINT:" + p));
+				String startState = maze.getState();
+				locStats.add(trace.traceStart(startState, nxcs));
+			}
+			// print stats
+			for (ArrayList<StepSnapshot> l : locStats) {
+				for (StepSnapshot s : l) {
+					System.out.println(s.toString());
+				}
 			}
 		}
 	}
