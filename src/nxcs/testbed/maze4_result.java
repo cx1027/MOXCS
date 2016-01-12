@@ -32,9 +32,7 @@ import nxcs.Result;
 import nxcs.Reward;
 import nxcs.Trace;
 import nxcs.XienceMath;
-import nxcs.stats.Snapshot;
-import nxcs.stats.StatsLogger;
-import nxcs.stats.StepSnapshot;
+import nxcs.stats.*;
 
 /**
  * Represents a maze problem which is loaded in from a file. Such a file should
@@ -408,6 +406,9 @@ public class maze4_result implements Environment {
 				StatsLogger logger = new StatsLogger(((finalStateUpperBound / chartIntervalLinesNumber) > 10)
 						? (finalStateUpperBound / chartIntervalLinesNumber) / 10 * 10 : 10, 0);
 
+
+				StepStatsLogger loggers = new StepStatsLogger(15, 0);  
+				
 				// System.out.println(String.format("calculate Pareto sum at
 				// every %d times", resultInterval));
 
@@ -447,6 +448,11 @@ public class maze4_result implements Environment {
 						// store result of this interval
 
 						stats.add(new Snapshot(finalStateCount, nxcs.getPopulation(), 0, 0, hyperSum));
+						
+						//trace stats
+						loggers.addStats(maze.traceOpenLocations(finalStateCount, maze, trace, nxcs));
+					
+					
 						logged = true;
 					}
 
@@ -498,7 +504,6 @@ public class maze4_result implements Environment {
 
 				// TRACE IN TURN!!!!!!!!!!!!!!!!!!!!!!!!!
 				System.out.println(String.format("trace**************", finalStateCount));
-				maze.traceOpenLocations(maze, trace, nxcs, traceUpperBound);
 
 				tempList.put(z, innerList);
 			} // endof z loop
@@ -555,10 +560,9 @@ public class maze4_result implements Environment {
 	// return ((double) (timestamp)) / finalStateCount2;
 	// }
 
-	private void traceOpenLocations(maze4_result maze, Trace trace, NXCS nxcs, int totalTimes) {
+	private ArrayList<ArrayList<StepSnapshot>> traceOpenLocations(int timeStamp, maze4_result maze, Trace trace, NXCS nxcs) {
 		// stats variables
 		ArrayList<ArrayList<StepSnapshot>> locStats = new ArrayList<ArrayList<StepSnapshot>>();
-		for (int i = 1; i <= totalTimes; i++) {
 			for (Point p : maze.openLocations) {
 				maze.resetToSamePosition(p);
 				System.out.println(String.format("START TARCE*************" + "POINT:" + p));
@@ -570,8 +574,9 @@ public class maze4_result implements Environment {
 				for (StepSnapshot s : l) {
 					System.out.println(s.toString());
 				}
-			}
-		}
+			} 
+
+		return locStats;
 	}
 
 	public HashMap<Point, Result> GetResult(maze4_result maze, NXCS nxcs) {

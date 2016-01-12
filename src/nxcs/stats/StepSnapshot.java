@@ -4,6 +4,8 @@ import java.awt.Point;
 import java.util.ArrayList;
 import java.util.List;
 
+import nxcs.Qvector;
+
 public class StepSnapshot {
 	private int timestamp;
 	private Point openState;
@@ -63,6 +65,14 @@ public class StepSnapshot {
 		this(0, openState, finalState, steps, path);
 	}
 
+	public StepSnapshot(int timestamp, Point openState, Point finalState, int steps) {
+		this(timestamp, openState, finalState, steps, null);
+	}
+
+	public StepSnapshot(Point openState, Point finalState, int steps) {
+		this(0, openState, finalState, steps, null);
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder build = new StringBuilder();
@@ -92,5 +102,18 @@ public class StepSnapshot {
 		build.append("\n");
 
 		return build.toString();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof StepSnapshot))
+			return false;
+		if (obj == this)
+			return true;
+		StepSnapshot q = (StepSnapshot) obj;
+		if (this.openState.equals(q.openState) && this.finalState.equals(q.finalState) && this.steps == q.steps)
+			return true;
+		else
+			return false;
 	}
 }
