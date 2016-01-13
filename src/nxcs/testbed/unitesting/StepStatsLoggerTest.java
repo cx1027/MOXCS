@@ -62,7 +62,7 @@ public class StepStatsLoggerTest {
 
 		StepStatsPoint a = cut.calculateMatchedRate(expectFlat, result);
 
-		assertEquals(Math.abs(a.matchRate - 1) < 0.00001, true);
+		assertEquals(Math.abs(a.matchedRate - 1) < 0.00001, true);
 	}
 
 	@Test
@@ -95,7 +95,7 @@ public class StepStatsLoggerTest {
 
 		StepStatsPoint a = cut.calculateMatchedRate(expectFlat, result);
 
-		assertEquals(Math.abs(a.matchRate - 1) < 0.00001, true);
+		assertEquals(Math.abs(a.matchedRate - 1) < 0.00001, true);
 	}
 
 	@Test
@@ -126,7 +126,7 @@ public class StepStatsLoggerTest {
 
 		StepStatsPoint a = cut.calculateMatchedRate(expectFlat, list);
 
-		assertEquals(Math.abs(a.matchRate - 0.8) < 0.00001, true);
+		assertEquals(Math.abs(a.matchedRate - 0.8) < 0.00001, true);
 		assertEquals(Math.abs(a.coverage - 1) < 0.00001, true);
 	}
 }
