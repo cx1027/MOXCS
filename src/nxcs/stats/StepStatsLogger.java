@@ -98,16 +98,16 @@ public class StepStatsLogger {
 			System.out.println(p.toString());
 		}
 	}
+
 	public void writeLogAndCSVFiles(String csvFile, String logFile) throws IOException {
 		File csv = new File(csvFile.replaceAll("<TRIAL_NUM>", "Average"));
 		csv.getParentFile().mkdirs();
 		FileWriter dataWriter = new FileWriter(csv);
 
 		// Write Column Headers
-		dataWriter.write("Number of Learning Problems, Avg. Matched Rate, Avg. Coverage Rate"
-					+"\n");
+		dataWriter.write("Number of Learning Problems, Avg. Matched Rate, Avg. Coverage Rate" + "\n");
 		List<StepStatsPoint> averages = new ArrayList<StepStatsPoint>();
-		
+
 		for (int i = 0; i < this.matchStatsPoints.size(); i++) {
 			File finalLogFile = new File(logFile.replaceAll("<TIMESTEP_NUM>", "" + i));
 			finalLogFile.getParentFile().mkdirs();
@@ -125,8 +125,26 @@ public class StepStatsLogger {
 			}
 		}
 		dataWriter.close();
+
+		csv = new File(csvFile.replaceAll("<TRIAL_NUM>", "step_log"));
+		dataWriter = new FileWriter(csv);
+		dataWriter.write("Number of Learning Problems, Open State, Final State, Steps, Path" + "\n");
+		for (int i = 0; i < this.stepSnapshots.size(); i++) {
+			try {
+				ArrayList<StepSnapshot> flat = flatNestedArrayList(stepSnapshots.get(i));
+				for (StepSnapshot s : flat) {
+					dataWriter.append(s.toCSV());
+				}
+			}catch( Exception  ex){
+				System.out.println(ex.getMessage());
+			}
+			finally {
+				
+			}
+		}
+		dataWriter.close();
 	}
-	
+
 	public void writeChartsAsSinglePlot(String chartFile, String problem) throws IOException {
 		List<StepStatsPoint> averages = new ArrayList<StepStatsPoint>();
 		for (List<StepStatsPoint> s : this.matchStatsPoints) {

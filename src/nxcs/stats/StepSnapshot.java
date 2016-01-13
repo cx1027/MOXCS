@@ -94,11 +94,17 @@ public class StepSnapshot {
 		StringBuilder build = new StringBuilder();
 		build.append(this.timestamp);
 		build.append(", ");
-		build.append(String.format("(%d,%d)", this.openState.getX(), this.openState.getY()));
+		build.append(String.format("(%d-%d)", (int) this.openState.getX(), (int) this.openState.getY()));
 		build.append(", ");
-		build.append(String.format("(%d,%d)", this.openState.getX(), this.openState.getY()));
+		build.append(String.format("(%d-%d)", (int) this.finalState.getX(), (int) this.finalState.getY()));
 		build.append(", ");
 		build.append(this.steps);
+		build.append(", ");
+		if (this.path.size() > 0)
+			for (Point p : this.path) {
+				build.append(String.format("->(%d-%d)", (int) p.getX(), (int) p.getY()));
+			}
+		build.append("->");
 		build.append("\n");
 
 		return build.toString();
