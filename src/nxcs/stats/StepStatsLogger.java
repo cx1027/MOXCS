@@ -145,7 +145,7 @@ public class StepStatsLogger {
 
 		for (int i = 0; i < labels.length; i++) {
 			XYSeriesCollection data = new XYSeriesCollection();
-			data.addSeries(series[0]);
+			data.addSeries(series[i]);
 			JFreeChart chart = ChartFactory.createScatterPlot(labels[i] + "\n" + problem, "Number of Learning Problems",
 					labels[i], data);
 			chart.setBackgroundPaint(Color.white);
