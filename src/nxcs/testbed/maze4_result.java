@@ -394,7 +394,7 @@ public class maze4_result implements Environment {
 				// NOTE: These parameters are not complete.
 
 				NXCS nxcs = new NXCS(maze, params);
-				int finalStateUpperBound = 501;
+				int finalStateUpperBound = 1501;
 				int traceUpperBound = 1;
 				Trace trace = new Trace(maze, params);
 				int finalStateCount = 1;
@@ -405,7 +405,7 @@ public class maze4_result implements Environment {
 				// finalStateUpperBound / 20) / 10 * 10 should be 20
 				int chartXInterval = ((finalStateUpperBound / chartIntervalLinesNumber) > 10)
 						? (finalStateUpperBound / chartIntervalLinesNumber) / 10 * 10 : 10;
-						
+
 				StatsLogger logger = new StatsLogger(chartXInterval, 0);
 				StepStatsLogger loggers = new StepStatsLogger(chartXInterval, 0);
 
@@ -504,6 +504,8 @@ public class maze4_result implements Environment {
 				// TRACE IN TURN!!!!!!!!!!!!!!!!!!!!!!!!!
 				System.out.println(String.format("trace result log**************", finalStateCount));
 				loggers.calculateMatchPercentage(maze.getOpenLocationExpectPaths());
+				loggers.writeLogAndCSVFiles(String.format("log/csv/%s/%s/Trial <TRIAL_NUM>.csv", "MOXCS", "MAZE4"),
+						String.format("log/datadump/%s/<TIMESTEP_NUM>.log", "MOXCS"));
 				loggers.writeChartsAsSinglePlot(String.format("log/charts/%s/%s/<CHART_TITLE>.png", "MOXCS", "MAZE4"),
 						String.format("%s on %s", "MOXCS", "MAZE4"));
 				tempList.put(z, innerList);

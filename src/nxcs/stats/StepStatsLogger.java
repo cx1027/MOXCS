@@ -98,6 +98,34 @@ public class StepStatsLogger {
 			System.out.println(p.toString());
 		}
 	}
+	public void writeLogAndCSVFiles(String csvFile, String logFile) throws IOException {
+		File csv = new File(csvFile.replaceAll("<TRIAL_NUM>", "Average"));
+		csv.getParentFile().mkdirs();
+		FileWriter dataWriter = new FileWriter(csv);
+
+		// Write Column Headers
+		dataWriter.write("Number of Learning Problems, Avg. Matched Rate, Avg. Coverage Rate"
+					+"\n");
+		List<StepStatsPoint> averages = new ArrayList<StepStatsPoint>();
+		
+		for (int i = 0; i < this.matchStatsPoints.size(); i++) {
+			File finalLogFile = new File(logFile.replaceAll("<TIMESTEP_NUM>", "" + i));
+			finalLogFile.getParentFile().mkdirs();
+			FileWriter logWriter = new FileWriter(finalLogFile);
+			List<StepStatsPoint> stats = this.matchStatsPoints.get(i);
+			try {
+				for (int j = 0; j < stats.size(); j++) {
+					StepStatsPoint s = stats.get(j);
+					logWriter.append(s.toString());
+					logWriter.append("\n\n");
+					dataWriter.append(s.toCSV());
+				}
+			} finally {
+				logWriter.close();
+			}
+		}
+		dataWriter.close();
+	}
 	
 	public void writeChartsAsSinglePlot(String chartFile, String problem) throws IOException {
 		List<StepStatsPoint> averages = new ArrayList<StepStatsPoint>();
