@@ -595,6 +595,8 @@ public class maze4 implements Environment {
 			
 			pathStep.add(point);
 			String state = maze.getState();
+			
+			//TODO:SELECT ACTION
 			int action = nxcs.classify(state);
 
 			maze.getReward(state, action);

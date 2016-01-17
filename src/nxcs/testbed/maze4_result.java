@@ -277,7 +277,6 @@ public class maze4_result implements Environment {
 	}
 
 	public Point getxy() {
-		System.out.println(String.format("x,y:%d %d", x, y));
 		return new Point(x, y);
 	}
 
@@ -449,8 +448,9 @@ public class maze4_result implements Environment {
 
 						stats.add(new Snapshot(finalStateCount, nxcs.getPopulation(), 0, 0, hyperSum));
 
+						maze.printOpenLocationClassifiers(finalStateCount, maze, nxcs);
 						// trace stats
-						loggers.add(maze.traceOpenLocations(finalStateCount, maze, trace, nxcs));
+						loggers.add(maze.traceOpenLocations(finalStateCount, maze, trace, nxcs, params));
 
 						logged = true;
 					}
@@ -466,7 +466,7 @@ public class maze4_result implements Environment {
 
 				System.out.println("Trained on " + finalStateCount + " final states");
 
-				// print classifiers for each openlocations
+				// TODO: PRINT classifiers for each openlocations
 				System.out.println("print classifiers for each openlocations");
 				for (Point p : maze.openLocations) {
 					System.out.println("x:" + p.x + " y:" + p.y);
@@ -490,12 +490,14 @@ public class maze4_result implements Environment {
 
 				// Plot the picture of the whole result
 				logger.logRun(stats);
-
+				String traceMethod = "2s";
 				try {
-					logger.writeLogAndCSVFiles(String.format("log/csv/%s/%s/Trial <TRIAL_NUM>.csv", "MOXCS", "MAZE4"),
-							String.format("log/datadump/%s/<TIMESTEP_NUM>.log", "MOXCS"), "Hyper Volumn");
+					logger.writeLogAndCSVFiles(
+							String.format("log%s/csv/%s/%s/Trial <TRIAL_NUM>.csv", traceMethod, "MOXCS", "MAZE4"),
+							String.format("log%s/datadump/%s/<TIMESTEP_NUM>.log", traceMethod, "MOXCS"),
+							"Hyper Volumn");
 					logger.writeChartsAsSinglePlot(
-							String.format("log/charts/%s/%s/<CHART_TITLE>.png", "MOXCS", "MAZE4"),
+							String.format("log%s/charts/%s/%s/<CHART_TITLE>.png", traceMethod, "MOXCS", "MAZE4"),
 							String.format("%s on %s", "MOXCS", "MAZE4"), "performance", "Hyper Volumn");
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -504,9 +506,11 @@ public class maze4_result implements Environment {
 				// TRACE IN TURN!!!!!!!!!!!!!!!!!!!!!!!!!
 				System.out.println(String.format("trace result log**************", finalStateCount));
 				loggers.calculateMatchPercentage(maze.getOpenLocationExpectPaths());
-				loggers.writeLogAndCSVFiles(String.format("log/csv/%s/%s/Trial <TRIAL_NUM>.csv", "MOXCS", "MAZE4"),
+				loggers.writeLogAndCSVFiles(
+						String.format("log%s/csv/%s/%s/Trial <TRIAL_NUM>.csv", traceMethod, "MOXCS", "MAZE4"),
 						String.format("log/datadump/%s/<TIMESTEP_NUM>.log", "MOXCS"));
-				loggers.writeChartsAsSinglePlot(String.format("log/charts/%s/%s/<CHART_TITLE>.png", "MOXCS", "MAZE4"),
+				loggers.writeChartsAsSinglePlot(
+						String.format("log%s/charts/%s/%s/<CHART_TITLE>.png", traceMethod, "MOXCS", "MAZE4"),
 						String.format("%s on %s", "MOXCS", "MAZE4"));
 				tempList.put(z, innerList);
 			} // endof z loop
@@ -563,15 +567,38 @@ public class maze4_result implements Environment {
 	// return ((double) (timestamp)) / finalStateCount2;
 	// }
 
+	private void printOpenLocationClassifiers(int timestamp, maze4_result maze, NXCS nxcs) {
+		for (Point p : maze.openLocations) {
+			System.out.println(String.format("%d\t location:%d,%d", timestamp, (int) p.getX(), (int) p.getY()));
+			List<Classifier> C = nxcs.getMatchSet(maze.getStringForState(p.x, p.y));
+			for (int action : act) {
+
+				List<Classifier> A = C.stream().filter(b -> b.action == action).collect(Collectors.toList());
+				// Collections.sort(A, (a, b) -> (int) ((a.fitness -
+				// b.fitness) * 10024));
+				Collections.sort(A, new Comparator<Classifier>() {
+					@Override
+					public int compare(Classifier o1, Classifier o2) {
+						return o1.fitness == o2.fitness ? 0 : (o1.fitness > o2.fitness ? 1 : -1);
+					}
+				});
+				if (A.size() >= 1) {
+					System.out.println(A.get(A.size() - 1));
+				}
+			}
+		} // open locations
+	}
+
 	private ArrayList<ArrayList<StepSnapshot>> traceOpenLocations(int timeStamp, maze4_result maze, Trace trace,
-			NXCS nxcs) {
+			NXCS nxcs, NXCSParameters params) {
 		// stats variables
 		ArrayList<ArrayList<StepSnapshot>> locStats = new ArrayList<ArrayList<StepSnapshot>>();
 		for (Point p : maze.openLocations) {
 			maze.resetToSamePosition(p);
 			System.out.println(String.format("START TARCE*************" + "POINT:" + p));
 			String startState = maze.getState();
-			ArrayList<StepSnapshot> trc = trace.traceStart(startState, nxcs);
+			ArrayList<StepSnapshot> trc = trace.traceStartWithTwoStates(timeStamp, maze, params, nxcs, p);
+			// ArrayList<StepSnapshot> trc = trace.traceStart(startState, nxcs);
 			trc.stream().forEach(x -> x.setTimestamp(timeStamp));
 			locStats.add(trc);
 		}
@@ -673,82 +700,4 @@ public class maze4_result implements Environment {
 
 		return expect;
 	}
-
-	public HashMap<Point, Result> GetResult(maze4_result maze, NXCS nxcs) {
-		int finalStateCount2 = 0;
-		int timestamp = 0;
-		HashMap<Point, Result> resultMap = new HashMap<Point, Result>();
-
-		System.out.println(String.format("start*************"));
-
-		while (finalStateCount2 < 20) {
-			PathStep pathStep = new PathStep();
-			Point point = maze.getxy();
-
-			pathStep.add(point);
-			String state = maze.getState();
-			int action = nxcs.classify(state);
-
-			maze.getReward(state, action);
-
-			pathStep.setStep(pathStep.getStep() + 1);
-
-			if (maze.isEndOfProblem(state)) {
-				maze.getxy();
-				System.out.println(String.format("final*************"));
-				Result rt = null;
-				if (resultMap.containsKey(point)) {
-					rt = resultMap.get(point);
-
-				} else {
-					rt = new Result();
-					resultMap.put(point, rt);
-				}
-				rt.setFinailStateCount(rt.getFinailStateCount() + 1);
-				rt.addPathStep(pathStep);
-
-				maze.resetPosition();
-				finalStateCount2++;
-			}
-			timestamp++;
-		}
-		return resultMap;
-	}
-
-	public HashMap<Point, Result> trace(maze4_result maze, NXCS nxcs) {
-		int finalStateCount2 = 0;
-		int timestamp = 0;
-		HashMap<Point, Result> resultMap = new HashMap<Point, Result>();
-
-		while (finalStateCount2 < 20) {
-			PathStep pathStep = new PathStep();
-			Point point = maze.getxy();
-			pathStep.add(point);
-			String state = maze.getState();
-			int action = nxcs.classify(state);
-
-			maze.getReward(state, action);
-
-			pathStep.setStep(pathStep.getStep() + 1);
-
-			if (maze.isEndOfProblem(state)) {
-				Result rt = null;
-				if (resultMap.containsKey(point)) {
-					rt = resultMap.get(point);
-
-				} else {
-					rt = new Result();
-					resultMap.put(point, rt);
-				}
-				rt.setFinailStateCount(rt.getFinailStateCount() + 1);
-				rt.addPathStep(pathStep);
-
-				maze.resetPosition();
-				finalStateCount2++;
-			}
-			timestamp++;
-		}
-		return resultMap;
-	}
-
 }

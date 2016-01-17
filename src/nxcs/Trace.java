@@ -13,6 +13,8 @@ import com.rits.cloning.Cloner;
 
 import nxcs.stats.StepSnapshot;
 import nxcs.testbed.DST_Trace;
+import nxcs.testbed.maze4;
+import nxcs.testbed.maze4_result;
 
 public class Trace {
 	/**
@@ -24,11 +26,6 @@ public class Trace {
 	 * The Environment the system is acting on
 	 */
 	private final Environment env;
-
-	/**
-	 * The current population of this system
-	 */
-	private final List<Classifier> population;
 
 	/**
 	 * The current timestamp in this system
@@ -64,7 +61,6 @@ public class Trace {
 
 		env = _env;
 		params = _params;
-		population = new ArrayList<Classifier>();
 		timestamp = 0;
 		this.cloner = new Cloner();
 		this.addVL = new addVectorNList();
@@ -133,7 +129,7 @@ public class Trace {
 		return ParetoDotwithA;
 	}
 
-	public ArrayList<StepSnapshot> traceStart(String startState, NXCS nxcs){
+	public ArrayList<StepSnapshot> traceStart(String startState, NXCS nxcs) {
 		// int count = 0;
 		// ActionPareto TA = null;
 		List<ActionPareto> listVA = new ArrayList<ActionPareto>();
@@ -252,4 +248,99 @@ public class Trace {
 		return nextTarget;
 	}
 
+	public ArrayList<StepSnapshot> traceStartWithTwoStates(int timestamp, maze4_result maze, NXCSParameters params,
+			NXCS nxcs, Point startPos) {
+		System.out.println(String.format("start Pos:(%d,%d)", (int) startPos.getX(), (int) startPos.getY()));
+		ArrayList<StepSnapshot> ret = new ArrayList<StepSnapshot>();
+
+		maze.resetToSamePosition(startPos);
+		String currState = maze.getState();
+		final String fstate = maze.getState();
+		List<Classifier> matchSet = nxcs.getPopulation().stream().filter(c -> nxcs.stateMatches(c.condition, fstate))
+				.collect(Collectors.toList());
+		// predictions is action based(0-1-2-3), for each action check if
+		// prediction[act]>0 to take action
+		double[] predictions = nxcs.generatePredictions(matchSet);
+		String sp = String.format("%d", timestamp);
+		for (int ap = 0; ap < params.numActions; ap++) {
+			sp += String.format("\t%d=%3.2f", ap, predictions[ap]);
+		}
+		System.out.println(sp);
+
+		// SELECT ACTION
+		for (int action = 0; action < params.numActions; action++) {
+			maze.resetToSamePosition(startPos);
+			System.out.println(String.format("Start to loop (%d,%d), Action:%d", (int) maze.x, maze.y, action));
+			if (predictions[action] > 0) {
+				int loopCount = 0;
+				int steps = 0;
+				ArrayList<Point> path = new ArrayList<Point>();
+				StepSnapshot s3 = null;
+				int stepAction = -1;
+
+				Point prev = maze.getxy();
+				String prevState = maze.getState();
+				Point curr = maze.getxy();
+				maze.getReward(currState, action);
+				// update path and step count
+				path.add(maze.getxy());
+				steps++;
+				currState = maze.getState();
+				if (maze.isEndOfProblem(currState)) {
+					path.remove(path.size() - 1);
+					s3 = new StepSnapshot(startPos, maze.getxy(), steps, path);
+					ret.add(s3);
+					System.out.println("\t==>" + s3.toString());
+					System.out.println("====================");
+					continue;
+				}
+
+				while (!maze.isEndOfProblem(currState) && loopCount < 50) {
+//					stepAction = nxcs.classify(timestamp, curr, currState, prev, prevState);
+					stepAction = nxcs.classify(currState,prevState);
+					System.out.println(String.format("\t\t%d timestamp, currPos:(%d,%d) \t selected action:%d",
+							timestamp, (int) curr.getX(), (int) curr.getY(), stepAction));
+
+					prev = maze.getxy();
+					prevState = maze.getState();
+
+					// Take action and get reward
+					maze.getReward(currState, stepAction);
+					currState = maze.getState();
+					curr = maze.getxy();
+
+					// update path and step count
+					path.add(curr);
+					steps++;
+					if (prev.equals(curr)) {
+						System.out.println("\t\tPrev:" + prev + " curr:" + curr);
+						stepAction = nxcs.classify(currState, prevState);
+					}
+
+					if (maze.isEndOfProblem(currState)) {
+						path.remove(path.size() - 1);
+						s3 = new StepSnapshot(startPos, maze.getxy(), steps, path);
+						ret.add(s3);
+						System.out.println("\t==>" + s3.toString());
+						System.out.println("====================");
+						break;
+					}
+					loopCount++;
+					System.out.println(String.format("\t\t%d loop time in trace x,y:%d,%d", loopCount,
+							(int) maze.getxy().getX(), (int) maze.getxy().getY()));
+				}
+				
+				// cannot reach to final state within 50 steps above
+				if (s3 == null) {
+					s3 = new StepSnapshot(startPos, env.getxy(), -1, path);
+					ret.add(s3);
+					System.out.println("====================NONONONONONONONONO==================");
+				}
+			}
+		}
+		System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@");
+		// path.forEach(x->System.out.print(String.format("->(%d,%d)", (int)
+		// maze.getxy().getX(), (int) maze.getxy().getY())));
+		return ret;
+	}
 }

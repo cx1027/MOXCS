@@ -89,6 +89,8 @@ public class Classifier implements Serializable {
 	 */
 	public String condition;
 
+	public String conditionNext;
+
 	/**
 	 * The avg R and Q for the Q-vector, R+Q=V=real prediction The N is
 	 * represent how many times this action in current state was choosed, which
@@ -238,6 +240,12 @@ public class Classifier implements Serializable {
 			}
 		}
 		condition = build.toString();
+
+		for (int i = 0; i < params.stateLength; i++) {
+			build.append('0');
+		}
+		conditionNext = build.toString();
+
 	}
 
 	/**
@@ -280,6 +288,11 @@ public class Classifier implements Serializable {
 			}
 		}
 		condition = build.toString();
+
+		for (int i = 0; i < params.stateLength; i++) {
+			build.append('0');
+		}
+		conditionNext = build.toString();
 	}
 
 	/**
@@ -447,10 +460,10 @@ public class Classifier implements Serializable {
 	public int wildcardCount() {
 		int count = 0;
 		for (int i = 0; i < condition.length(); i++) {
-			if (condition.charAt(i)=='#') {
+			if (condition.charAt(i) == '#') {
 				count++;
 			}
-			
+
 		}
 
 		return count;
@@ -460,8 +473,8 @@ public class Classifier implements Serializable {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(String.format(
-				"&&&&&Classifier [%s = %d, Theta: %3.2f, Error: %3.2f,Fitness: %3.2f, Prediction: %3.2f, Numerosity: %d, exp:%d ",
-				condition, action, omega, error, fitness, prediction, numerosity, experience));
+				"&&&&&Classifier [%s = %d\t Theta: %3.2f\t Error: %3.2f\tFitness: %3.2f\tPrediction: %3.2f\tNumerosity: %d\texp:%d\tCondictionNext:%s",
+				condition, action, omega, error, fitness, prediction, numerosity, experience, this.conditionNext));
 
 		sb.append(" R:[");
 		for (Double p : this.R.getQvalue()) {
