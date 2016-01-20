@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 
@@ -32,25 +34,31 @@ public class StepStatsLogger {
 		this.yInterval = yint;
 	}
 
+	private ArrayList<ArrayList<ArrayList<ArrayList<StepSnapshot>>>> multiSnapshots = new ArrayList<ArrayList<ArrayList<ArrayList<StepSnapshot>>>>();
+	private ArrayList<ArrayList<StepStatsPoint>> multiStatsPoints = new ArrayList<ArrayList<StepStatsPoint>>();
+
 	private ArrayList<ArrayList<ArrayList<StepSnapshot>>> stepSnapshots = new ArrayList<ArrayList<ArrayList<StepSnapshot>>>();
-	private ArrayList<ArrayList<StepStatsPoint>> matchStatsPoints = new ArrayList<ArrayList<StepStatsPoint>>();
+	private ArrayList<StepStatsPoint> statsPoints = new ArrayList<StepStatsPoint>();
 
 	/*
-	 * add stats for a batch (batch = one trace process) use this to store stats
-	 * for multi batches ArrayList<(All Open Loc) ArrayList<(One Loc)
-	 * ArrayList<(One Loc Path)>>
+	 * add batch stats(batch = one trace process) for one batche: =
+	 * ArrayList<(All Open Loc) of ArrayList<(One Loc) of ArrayList<(One Loc
+	 * Path)>>
 	 */
-	public void addBatchStats(ArrayList<ArrayList<ArrayList<StepSnapshot>>> stats) {
-		for (int j = 0; j < stats.size(); j++) {
-			if (stepSnapshots.size() <= j) {
-				stepSnapshots.add(new ArrayList<ArrayList<StepSnapshot>>());
-			}
-			stepSnapshots.get(j).addAll(stats.get(j));
-		}
+	public void addBatchStats(ArrayList<StepStatsPoint> stats) {
+		multiStatsPoints.add(stats);
 	}
 
 	public void add(ArrayList<ArrayList<StepSnapshot>> stats) {
 		stepSnapshots.add(stats);
+	}
+
+	public ArrayList<ArrayList<ArrayList<StepSnapshot>>> getCurrentRawStats() {
+		return stepSnapshots;
+	}
+
+	public ArrayList<StepStatsPoint> getCurrentTrailStats() {
+		return this.statsPoints;
 	}
 
 	public StepStatsPoint calculateMatchedPercentage(ArrayList<ArrayList<StepSnapshot>> expect,
@@ -61,13 +69,16 @@ public class StepStatsLogger {
 	public StepStatsPoint calculateMatchedRate(ArrayList<StepSnapshot> expectFlat,
 			ArrayList<ArrayList<StepSnapshot>> result) {
 		double matchedCnt = 0.0;
+		double cCnt = 0.0;
 		ArrayList<StepSnapshot> resultFlat = flatNestedArrayList(result);
 
-		for (StepSnapshot exp : expectFlat) {
-			matchedCnt += findMatch(exp, resultFlat) ? 1 : 0;
+		for (StepSnapshot item : resultFlat) {
+			matchedCnt += findMatch(item, expectFlat) ? 1 : 0;
 		}
+		cCnt = (double) resultFlat.stream().filter(x -> x.getSteps() == -1).count();
+
 		int timeStamp = result.get(0).get(0).getTimestamp();
-		return new StepStatsPoint(timeStamp, matchedCnt / expectFlat.size(),
+		return new StepStatsPoint(timeStamp, matchedCnt / (matchedCnt + cCnt),
 				resultFlat.size() * 1.0 / expectFlat.size());
 	}
 
@@ -87,13 +98,23 @@ public class StepStatsLogger {
 		return false;
 	}
 
+	/*
+	 * find any open-final state macthed with steps=-1(loop)
+	 */
+	public boolean findLoop(StepSnapshot item, ArrayList<StepSnapshot> list) {
+		Optional<StepSnapshot> itemx = list.stream().filter(x -> x.getOpenState().equals(item.getOpenState())
+				&& x.getFinalState().equals(item.getFinalState()) && (item.getSteps() == -1)).findFirst();
+		return itemx.isPresent() ? true : false;
+	}
+
 	public void calculateMatchPercentage(ArrayList<ArrayList<StepSnapshot>> expect) {
 		ArrayList<StepSnapshot> expectFlat = flatNestedArrayList(expect);
 		ArrayList<StepStatsPoint> sts = new ArrayList<StepStatsPoint>();
+		// a/(a+c)
 		for (ArrayList<ArrayList<StepSnapshot>> r : this.stepSnapshots) {
 			sts.add(calculateMatchedRate(expectFlat, r));
 		}
-		this.matchStatsPoints.add(sts);
+		this.statsPoints = sts;
 		for (StepStatsPoint p : sts) {
 			System.out.println(p.toString());
 		}
@@ -108,11 +129,11 @@ public class StepStatsLogger {
 		dataWriter.write("Number of Learning Problems, Avg. Matched Rate, Avg. Coverage Rate" + "\n");
 		List<StepStatsPoint> averages = new ArrayList<StepStatsPoint>();
 
-		for (int i = 0; i < this.matchStatsPoints.size(); i++) {
+		for (int i = 0; i < this.multiStatsPoints.size(); i++) {
 			File finalLogFile = new File(logFile.replaceAll("<TIMESTEP_NUM>", "" + i));
 			finalLogFile.getParentFile().mkdirs();
 			FileWriter logWriter = new FileWriter(finalLogFile);
-			List<StepStatsPoint> stats = this.matchStatsPoints.get(i);
+			List<StepStatsPoint> stats = this.multiStatsPoints.get(i);
 			try {
 				for (int j = 0; j < stats.size(); j++) {
 					StepStatsPoint s = stats.get(j);
@@ -135,11 +156,10 @@ public class StepStatsLogger {
 				for (StepSnapshot s : flat) {
 					dataWriter.append(s.toCSV());
 				}
-			}catch( Exception  ex){
+			} catch (Exception ex) {
 				System.out.println(ex.getMessage());
-			}
-			finally {
-				
+			} finally {
+
 			}
 		}
 		dataWriter.close();
@@ -147,9 +167,7 @@ public class StepStatsLogger {
 
 	public void writeChartsAsSinglePlot(String chartFile, String problem) throws IOException {
 		List<StepStatsPoint> averages = new ArrayList<StepStatsPoint>();
-		for (List<StepStatsPoint> s : this.matchStatsPoints) {
-			averages.addAll(s);
-		}
+		averages.addAll(statsPoints);
 
 		XYSeries[] series = new XYSeries[2];
 		series[0] = new XYSeries("Average Matched Rate");
@@ -160,6 +178,41 @@ public class StepStatsLogger {
 		}
 
 		String[] labels = { "Avg. Matched Rate", "Avg. Coverage Rate" };
+		writeChartsAsSinglePlot(chartFile, problem, labels, series);
+	}
+
+	private ArrayList<StepStatsPoint> calculateTrailAverage(ArrayList<ArrayList<StepStatsPoint>> multiStatsPoints) {
+		ArrayList<StepStatsPoint> ret = new ArrayList<StepStatsPoint>();
+		for (int i = 0; i < multiStatsPoints.get(0).size(); i++) {
+			final int ix = i;
+			ArrayList<StepStatsPoint> tsList = (ArrayList<StepStatsPoint>) multiStatsPoints.stream().map(x -> x.get(ix))
+					.collect(Collectors.toList());
+
+			System.out.println("ix:" + ix + "Size" + tsList.size());
+			ret.add(new StepStatsPoint(tsList.get(0).timestamp,
+					tsList.stream().mapToDouble(x -> x.matchedRate).average().getAsDouble(),
+					tsList.stream().mapToDouble(x -> x.coverage).average().getAsDouble()));
+		}
+		return ret;
+	}
+
+	public void writeAverageChartsAsSinglePlot(String chartFile, String problem) throws IOException {
+		List<StepStatsPoint> averages = this.calculateTrailAverage(this.multiStatsPoints);
+
+		XYSeries[] series = new XYSeries[2];
+		series[0] = new XYSeries("Average Matched Rate");
+		series[1] = new XYSeries("Average Coverage Rate");
+		for (StepStatsPoint s : averages) {
+			series[0].add(s.timestamp, s.matchedRate);
+			series[1].add(s.timestamp, s.coverage);
+		}
+
+		String[] labels = { "Avg. Matched Rate", "Avg. Coverage Rate" };
+		writeChartsAsSinglePlot(chartFile, problem, labels, series);
+	}
+
+	public void writeChartsAsSinglePlot(String chartFile, String problem, String[] labels, XYSeries[] series)
+			throws IOException {
 
 		for (int i = 0; i < labels.length; i++) {
 			XYSeriesCollection data = new XYSeriesCollection();
@@ -196,4 +249,5 @@ public class StepStatsLogger {
 			System.out.printf("Wrote %s with size %d%n", finalChartFile.getAbsolutePath(), finalChartFile.length());
 		}
 	}
+
 }

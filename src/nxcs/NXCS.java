@@ -206,6 +206,29 @@ public class NXCS {
 		} else {
 			action = XienceMath.randomInt(params.numActions);
 		}
+	
+//	public void runIteration(int finalStateCount, String previousState, String distance, String explore) {
+//		String prestate = env.getState();
+//		// System.out.println("privious state is above" + env.getState());
+//
+//		int action;
+//		if (previousState != null) {
+//			List<Classifier> matchSet = generateMatchSet(previousState);
+//			double[] predictions = generatePredictions(matchSet);
+//			
+//			
+//			if (XienceMath.randomInt(params.numActions) <= -1) {
+//				if(explore=="largenumber"){
+//				action = selectAction(predictions);}
+//				else{
+//					action = selectAction(calculateHyper());
+//				}
+//			} else {
+//				action = XienceMath.randomInt(params.numActions);
+//			}
+//		} else {
+//			action = XienceMath.randomInt(params.numActions);
+//		}
 
 		// int action;
 		// if(previousState!=null){
@@ -466,6 +489,22 @@ public class NXCS {
 		timestamp = timestamp + 1;
 		i++;
 	}
+//	public double[] calculateHyper(){
+//	//TODO: hypervolum at this state
+//	double[] hyper = [0,0,0,0];
+//	for(int i=0;i<4;i++){
+//		List<Classifier> A = C.stream().filter(b -> b.action == i)
+//				.collect(Collectors.toList());
+//		Collections.sort(A, new Comparator<Classifier>() {
+//			@Override
+//			public int compare(Classifier o1, Classifier o2) {
+//				return o1.fitness == o2.fitness ? 0 : (o1.fitness > o2.fitness ? 1 : -1);
+//			}
+//		});
+//		hyper[i] = hypervolumn.calcHyperVolumn(A.get(A.size() - 1).getV(),
+//				new Qvector(-10, -10));
+//	}
+//}
 
 	/**
 	 * Generates a set of classifiers that match the given state. Looks first
@@ -781,6 +820,7 @@ public class NXCS {
 	 *            The predictions to use to select the action
 	 * @return The action selected
 	 */
+	//TODO:SELECT THE MAX NUMBER ACITON!!!!!!
 	private int selectAction(double[] predictions) {
 		return (int) XienceMath.choice(IntStream.range(0, params.numActions).boxed().toArray(), predictions);
 	}

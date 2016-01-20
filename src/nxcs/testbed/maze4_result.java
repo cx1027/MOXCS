@@ -335,13 +335,15 @@ public class maze4_result implements Environment {
 
 		Map<Integer, Map<Integer, Double>> tempList = new HashMap<Integer, Map<Integer, Double>>();
 		BufferedWriter writer = null;
+		
+		
 
 		// create a temporary file
 		String timeLog = new SimpleDateFormat("yyyyMMdd").format(Calendar.getInstance().getTime());// yyyyMMdd_HHmmss
 		File logFile = new File(timeLog);
 
 		writer = new BufferedWriter(new FileWriter(logFile));
-		int totalCalcTimes = 1;
+		int totalCalcTimes = 2;
 
 		act.add(0);
 		act.add(1);
@@ -350,72 +352,83 @@ public class maze4_result implements Environment {
 
 		try {
 
-			for (int z = 0; z < totalCalcTimes; z++) {
-				System.out.println(String.format("--------------------- begin to run %d----------------------", z));
-				Map<Integer, Double> innerList = new HashMap<Integer, Double>();
+			maze4_result maze = new maze4_result("data/maze4.txt");
+			// maze.resetToSamePosition(new Point(5, 1));
+			
+			//distance and exploration setting
+			String[] distanceChoice = {"MIN", "MAX", "CORE", "J"};
+			String[] actionSelectChoice = {"maxN", "maxH"};
+			
+			//TODO:for different combination, LOOP for trials
 
-				maze4_result maze = new maze4_result("data/maze4.txt");
+			NXCSParameters params = new NXCSParameters();
+			// Another set of parameters Woods1, Woods101
+
+			params.N = 1600;
+			params.stateLength = 24;
+			params.numActions = 4;
+			params.rho0 = 1000;
+			params.pHash = 0.;
+			params.gamma = 0.5;
+			params.crossoverRate = 0.8;
+			params.mutationRate = 0.04;
+			params.thetaMNA = 4;
+			params.thetaGA = 500;
+			// params.thetaGA = 0;
+			// params.e0 = 0.05;
+			params.e0 = 0.05;
+			params.thetaDel = 200;
+			params.doActionSetSubsumption = false;
+			params.doGASubsumption = false;
+
+			// Maze5
+			/*
+			 * params.N = 5000; params.stateLength = 16; params.numActions = 8;
+			 * params.rho0 = 1000; params.pHash = 0.; params.gamma =
+			 * 0.7;//0.7->0.75 params.crossoverRate = 0.8; params.mutationRate =
+			 * 0.01; params.thetaMNA = 8; params.thetaGA = 25;//25->50 params.e0
+			 * = 1;//why e0 so small?1->10 params.thetaDel = 20;//20->30
+			 * params.doActionSetSubsumption = false; params.doGASubsumption =
+			 * false;
+			 */
+
+			// NOTE: These parameters are not complete.
+
+			NXCS nxcs = new NXCS(maze, params);
+			int finalStateUpperBound = 501;
+			int traceUpperBound = 1;
+			Trace trace = new Trace(maze, params);
+			int finalStateCount = 1;
+			boolean logged = false;
+			HyperVolumn hypervolumn = new HyperVolumn();
+			int resultInterval = 10;
+			int numOfChartBars = 15;
+			// finalStateUpperBound / 20) / 10 * 10 should be 20
+			int chartXInterval = ((finalStateUpperBound / numOfChartBars) > 10)
+					? (finalStateUpperBound / numOfChartBars) / 10 * 10 : 10;
+
+			StatsLogger logger = new StatsLogger(chartXInterval, 0);
+
+			StepStatsLogger stepTrailsLogger = new StepStatsLogger(chartXInterval, 0);
+
+			// System.out.println(String.format("calculate Pareto sum at
+			// every %d times", resultInterval));
+			for (int trailIndex = 0; trailIndex < totalCalcTimes; trailIndex++) {
+				//reset trail status
 				maze.resetPosition();
-				// maze.resetToSamePosition(new Point(5, 1));
-
-				NXCSParameters params = new NXCSParameters();
-				// Another set of parameters Woods1, Woods101
-
-				params.N = 1600;
-				params.stateLength = 24;
-				params.numActions = 4;
-				params.rho0 = 1000;
-				params.pHash = 0.;
-				params.gamma = 0.5;
-				params.crossoverRate = 0.8;
-				params.mutationRate = 0.04;
-				params.thetaMNA = 4;
-				params.thetaGA = 500;
-				// params.thetaGA = 0;
-				// params.e0 = 0.05;
-				params.e0 = 0.05;
-				params.thetaDel = 200;
-				params.doActionSetSubsumption = false;
-				params.doGASubsumption = false;
-
-				// Maze5
-				/*
-				 * params.N = 5000; params.stateLength = 16; params.numActions =
-				 * 8; params.rho0 = 1000; params.pHash = 0.; params.gamma =
-				 * 0.7;//0.7->0.75 params.crossoverRate = 0.8;
-				 * params.mutationRate = 0.01; params.thetaMNA = 8;
-				 * params.thetaGA = 25;//25->50 params.e0 = 1;//why e0 so
-				 * small?1->10 params.thetaDel = 20;//20->30
-				 * params.doActionSetSubsumption = false; params.doGASubsumption
-				 * = false;
-				 */
-
-				// NOTE: These parameters are not complete.
-
-				NXCS nxcs = new NXCS(maze, params);
-				int finalStateUpperBound = 1501;
-				int traceUpperBound = 1;
-				Trace trace = new Trace(maze, params);
-				int finalStateCount = 1;
-				boolean logged = false;
-				HyperVolumn hypervolumn = new HyperVolumn();
-				int resultInterval = 10;
-				int chartIntervalLinesNumber = 15;
-				// finalStateUpperBound / 20) / 10 * 10 should be 20
-				int chartXInterval = ((finalStateUpperBound / chartIntervalLinesNumber) > 10)
-						? (finalStateUpperBound / chartIntervalLinesNumber) / 10 * 10 : 10;
-
-				StatsLogger logger = new StatsLogger(chartXInterval, 0);
-				StepStatsLogger loggers = new StepStatsLogger(chartXInterval, 0);
-
-				// System.out.println(String.format("calculate Pareto sum at
-				// every %d times", resultInterval));
-
+				finalStateCount = 1;
+				
 				// clear stats
 				stats.clear();
+				
+
+				StepStatsLogger stepLogger = new StepStatsLogger(chartXInterval, 0);
+				
+				System.out.println(String.format("--------------------- begin to run %d----------------------", trailIndex));
+				
 				// begin
 				while (finalStateCount < finalStateUpperBound) {
-					nxcs.runIteration(finalStateCount, maze.getState());
+					nxcs.runIteration(finalStateCount, maze.getState());//, distance, exploration);
 
 					if (finalStateCount % resultInterval == 0 && !logged) {
 						double hyperSum = 0;
@@ -450,7 +463,7 @@ public class maze4_result implements Environment {
 
 						maze.printOpenLocationClassifiers(finalStateCount, maze, nxcs);
 						// trace stats
-						loggers.add(maze.traceOpenLocations(finalStateCount, maze, trace, nxcs, params));
+						stepLogger.add(maze.traceOpenLocations(finalStateCount, maze, trace, nxcs, params));
 
 						logged = true;
 					}
@@ -466,7 +479,7 @@ public class maze4_result implements Environment {
 
 				System.out.println("Trained on " + finalStateCount + " final states");
 
-				// TODO: PRINT classifiers for each openlocations
+				// print classifiers for each openlocations
 				System.out.println("print classifiers for each openlocations");
 				for (Point p : maze.openLocations) {
 					System.out.println("x:" + p.x + " y:" + p.y);
@@ -490,54 +503,35 @@ public class maze4_result implements Environment {
 
 				// Plot the picture of the whole result
 				logger.logRun(stats);
-				String traceMethod = "2s";
-				try {
-					logger.writeLogAndCSVFiles(
-							String.format("log%s/csv/%s/%s/Trial <TRIAL_NUM>.csv", traceMethod, "MOXCS", "MAZE4"),
-							String.format("log%s/datadump/%s/<TIMESTEP_NUM>.log", traceMethod, "MOXCS"),
-							"Hyper Volumn");
-					logger.writeChartsAsSinglePlot(
-							String.format("log%s/charts/%s/%s/<CHART_TITLE>.png", traceMethod, "MOXCS", "MAZE4"),
-							String.format("%s on %s", "MOXCS", "MAZE4"), "performance", "Hyper Volumn");
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				
 
-				// TRACE IN TURN!!!!!!!!!!!!!!!!!!!!!!!!!
+//				try {
+//					logger.writeLogAndCSVFiles(String.format("log/csv/%s/%s/Trial <TRIAL_NUM>.csv", "MOXCS", "MAZE4"),
+//							String.format("log/datadump/%s/<TIMESTEP_NUM>.log", "MOXCS"), "Hyper Volumn");
+//					logger.writeChartsAsSinglePlot(
+//							String.format("log/charts/%s/%s/<CHART_TITLE>.png", "MOXCS", "MAZE4"),
+//							String.format("%s on %s", "MOXCS", "MAZE4"), "performance", "Hyper Volumn");
+//				} catch (IOException e) {
+//					e.printStackTrace();
+//				}
+
+                //painting
 				System.out.println(String.format("trace result log**************", finalStateCount));
-				loggers.calculateMatchPercentage(maze.getOpenLocationExpectPaths());
-				loggers.writeLogAndCSVFiles(
-						String.format("log%s/csv/%s/%s/Trial <TRIAL_NUM>.csv", traceMethod, "MOXCS", "MAZE4"),
-						String.format("log/datadump/%s/<TIMESTEP_NUM>.log", "MOXCS"));
-				loggers.writeChartsAsSinglePlot(
-						String.format("log%s/charts/%s/%s/<CHART_TITLE>.png", traceMethod, "MOXCS", "MAZE4"),
-						String.format("%s on %s", "MOXCS", "MAZE4"));
-				tempList.put(z, innerList);
+				stepLogger.calculateMatchPercentage(maze.getOpenLocationExpectPaths());
+//				stepLogger.writeLogAndCSVFiles(String.format("log/csv/%s/%s/Trial %d - <TRIAL_NUM>.csv", "MOXCS", "MAZE4", trailIndex),
+//						String.format("log/datadump/%s/Trail %d-<TIMESTEP_NUM>.log", "MOXCS", trailIndex));
+//				stepLogger.writeChartsAsSinglePlot(String.format("log/charts/%s/%s/Trail %d - <CHART_TITLE>.png", "MOXCS", "MAZE4", trailIndex),
+//						String.format("%s on %s", "MOXCS", "MAZE4"));
+				
+				stepTrailsLogger.addBatchStats(stepLogger.getCurrentTrailStats());
+				
 			} // endof z loop
-
-			Map<Integer, Double> sumList = new HashMap<Integer, Double>();
-			for (Map.Entry<Integer, Map<Integer, Double>> entry : tempList.entrySet()) {
-
-				for (Map.Entry<Integer, Double> ientry : entry.getValue().entrySet()) {
-					if (sumList.containsKey(ientry.getKey())) {
-						sumList.put(ientry.getKey(), ientry.getValue() + sumList.get(ientry.getKey()));
-					} else {
-						sumList.put(ientry.getKey(), ientry.getValue());
-					}
-
-				}
-			} // end of sum map loop
-
+			
+			stepTrailsLogger.writeAverageChartsAsSinglePlot(String.format("log/charts/%s/%s/Trail %s - <CHART_TITLE>.png", "MOXCS", "MAZE4", "x"),
+					String.format("%s on %s", "MOXCS", "MAZE4"));
 			System.out.println(String.format("------Result avg of %d------", totalCalcTimes));
 			writer.write(String.format("------Result avg of %d------", totalCalcTimes));
 			writer.newLine();
-			Map<Integer, Double> treeMap = new TreeMap<Integer, Double>(sumList);
-			for (Map.Entry<Integer, Double> entry : treeMap.entrySet()) {
-				double avg = entry.getValue() / totalCalcTimes;
-				System.out.println(String.format("%d\t : avg= \t%5.3f", entry.getKey(), avg));
-				writer.write(String.format("%d : avg= %5.3f", entry.getKey(), avg));
-				writer.newLine();
-			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -548,45 +542,6 @@ public class maze4_result implements Environment {
 			} catch (Exception e) {
 			}
 		} // endof try
-	}
-
-	// private double GetResult(DST maze, NXCS nxcs) {
-	// int finalStateCount2 = 0;
-	// int timestamp = 0;
-	//
-	// while (finalStateCount2 < 200) {
-	// String state = maze.getState();
-	// int action = nxcs.classify(state);
-	// maze.getReward(state, action);
-	// if (maze.isEndOfProblem(maze.getState())) {
-	// maze.resetPosition();
-	// finalStateCount2++;
-	// }
-	// timestamp++;
-	// }
-	// return ((double) (timestamp)) / finalStateCount2;
-	// }
-
-	private void printOpenLocationClassifiers(int timestamp, maze4_result maze, NXCS nxcs) {
-		for (Point p : maze.openLocations) {
-			System.out.println(String.format("%d\t location:%d,%d", timestamp, (int) p.getX(), (int) p.getY()));
-			List<Classifier> C = nxcs.getMatchSet(maze.getStringForState(p.x, p.y));
-			for (int action : act) {
-
-				List<Classifier> A = C.stream().filter(b -> b.action == action).collect(Collectors.toList());
-				// Collections.sort(A, (a, b) -> (int) ((a.fitness -
-				// b.fitness) * 10024));
-				Collections.sort(A, new Comparator<Classifier>() {
-					@Override
-					public int compare(Classifier o1, Classifier o2) {
-						return o1.fitness == o2.fitness ? 0 : (o1.fitness > o2.fitness ? 1 : -1);
-					}
-				});
-				if (A.size() >= 1) {
-					System.out.println(A.get(A.size() - 1));
-				}
-			}
-		} // open locations
 	}
 
 	private ArrayList<ArrayList<StepSnapshot>> traceOpenLocations(int timeStamp, maze4_result maze, Trace trace,
@@ -611,7 +566,31 @@ public class maze4_result implements Environment {
 
 		return locStats;
 	}
+	
+	private void printOpenLocationClassifiers(int timestamp, maze4_result maze, NXCS nxcs) {
+		for (Point p : maze.openLocations) {
+			System.out.println(String.format("%d\t location:%d,%d", timestamp, (int) p.getX(), (int) p.getY()));
+			List<Classifier> C = nxcs.getMatchSet(maze.getStringForState(p.x, p.y));
+			for (int action : act) {
 
+				List<Classifier> A = C.stream().filter(b -> b.action == action).collect(Collectors.toList());
+				// Collections.sort(A, (a, b) -> (int) ((a.fitness -
+				// b.fitness) * 10024));
+				Collections.sort(A, new Comparator<Classifier>() {
+					@Override
+					public int compare(Classifier o1, Classifier o2) {
+						return o1.fitness == o2.fitness ? 0 : (o1.fitness > o2.fitness ? 1 : -1);
+					}
+				});
+				if (A.size() >= 1) {
+					System.out.println(A.get(A.size() - 1));
+				}
+				if (timestamp >= 1000) {
+					System.out.println(A);
+				}
+			}
+		} // open locations
+	}
 	public ArrayList<ArrayList<StepSnapshot>> getOpenLocationExpectPaths() {
 		ArrayList<ArrayList<StepSnapshot>> expect = new ArrayList<ArrayList<StepSnapshot>>();
 		ArrayList<StepSnapshot> e11 = new ArrayList<StepSnapshot>();
