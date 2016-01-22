@@ -188,7 +188,6 @@ public class StepStatsLogger {
 			ArrayList<StepStatsPoint> tsList = (ArrayList<StepStatsPoint>) multiStatsPoints.stream().map(x -> x.get(ix))
 					.collect(Collectors.toList());
 
-			System.out.println("ix:" + ix + "Size" + tsList.size());
 			ret.add(new StepStatsPoint(tsList.get(0).timestamp,
 					tsList.stream().mapToDouble(x -> x.matchedRate).average().getAsDouble(),
 					tsList.stream().mapToDouble(x -> x.coverage).average().getAsDouble()));
@@ -213,7 +212,7 @@ public class StepStatsLogger {
 
 	public void writeChartsAsSinglePlot(String chartFile, String problem, String[] labels, XYSeries[] series)
 			throws IOException {
-
+		
 		for (int i = 0; i < labels.length; i++) {
 			XYSeriesCollection data = new XYSeriesCollection();
 			data.addSeries(series[i]);

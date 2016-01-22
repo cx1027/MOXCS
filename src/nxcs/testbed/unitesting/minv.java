@@ -8,7 +8,7 @@ import org.junit.Test;
 
 import nxcs.NXCS;
 import nxcs.Qvector;
-import nxcs.minDistance;
+import nxcs.distance.DistanceCalculator;
 
 public class minv {
 
@@ -69,7 +69,7 @@ public class minv {
 	public void testJDis() {
 		final double delta = 0.00001d;
 		NXCS nxcs = new NXCS();
-		minDistance dis = new minDistance();
+		DistanceCalculator dis = new DistanceCalculator();
 		ArrayList<Qvector> v = new ArrayList<Qvector>();
 		v.add(new Qvector(0, 0));
 //		v.add(new Qvector(-1, 0));

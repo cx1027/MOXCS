@@ -11,7 +11,7 @@ import nxcs.ActionPareto;
 import nxcs.NXCS;
 import nxcs.ParetoCal;
 import nxcs.Qvector;
-import nxcs.minDistance;
+import nxcs.distance.DistanceCalculator;
 
 public class pareto {
 

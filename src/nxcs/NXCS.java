@@ -19,6 +19,7 @@ import java.util.stream.IntStream;
 
 import com.rits.cloning.Cloner;
 
+import nxcs.distance.DistanceCalculator;
 import nxcs.testbed.DST;
 import nxcs.testbed.EMaze;
 
@@ -120,17 +121,19 @@ public class NXCS {
 
 	/**
 	 * Classifies the given state using the current knowledge of the system
-	 * @param curr 
-	 * @param timestamp2 
+	 * 
+	 * @param curr
+	 * @param timestamp2
 	 * 
 	 * @param currState
 	 *            The state to classify
-	 * @param prev 
-	 * @param prevState 
+	 * @param prev
+	 * @param prevState
 	 * @return The class the system classifies the given state into
 	 */
-//	public int classify(int timestamp2, Point curr, String state, Point prev, String prevState) {
-	public int classify( String currState, String prevState) {
+	// public int classify(int timestamp2, Point curr, String state, Point prev,
+	// String prevState) {
+	public int classify(String currState, String prevState) {
 		if (currState.length() != params.stateLength)
 			throw new IllegalArgumentException(
 					String.format("The given state (%s) is not of the correct length", currState));
@@ -146,182 +149,144 @@ public class NXCS {
 					return o1.fitness == o2.fitness ? 0 : (o1.fitness > o2.fitness ? 1 : -1);
 				}
 			});
-			sortset.add(A.get(A.size()-1));
+			sortset.add(A.get(A.size() - 1));
 		}
-        
+
 		// delete the cls which next state=prestate
 		sortset.removeIf(x -> x.conditionNext.equals(prevState));
 		double[] predictions = generatePredictions(sortset);
 		return selectAction(predictions);
 	}
 
-	// public void runIteration(int i) {
-	// String state = env.getState();
-	// // System.out.println("current state " + env.getState());
-	// int action;
-	// if (env.isEndOfProblem(state)) {
-	// action = XienceMath.randomInt(params.numActions);
-	//// List<Classifier> setA = updateSet(previousState, state, previousAction,
-	// previousReward);
-	//// System.out.println("lalallalllallallal");
-	//// runGA(setA, state);
-	//
-	// } else {
-	// List<Classifier> matchSet = generateMatchSet(state);
-	// double[] predictions = generatePredictions(matchSet);
-	// action = selectAction(predictions);
-	// }
-	//
-	//
-	//
-	// if (previousState != null && !env.isEndOfProblem(state)) {
-	// //update Colin's code, even eop, it still need to update [A]
-	// //if (previousState != null && !env.isEndOfProblem(state)) {
-	// List<Classifier> setA = updateSet(previousState, state, previousAction,
-	// previousReward);
-	// runGA(setA, state);
-	// }
-	//
-	// // TODO:getReward to vector
-	// previousReward = env.getReward(state, action);
-	// System.out.println("action: " + action + " reward: " + previousReward);
-	// previousAction = action;
-	// previousState = state;
-	// timestamp = timestamp + 1;
-	// }
+	public double[] calHyper(String state) {
+		HyperVolumn hypervolumn = new HyperVolumn();
+		double[] hyper = { 0, 0, 0, 0 };
+		List<Classifier> C = getMatchSet(state);
+
+		for (int action = 0; action < params.numActions; action++) {
+			final int act = action;
+			List<Classifier> A = C.stream().filter(b -> b.action == act).collect(Collectors.toList());
+
+			Collections.sort(A, new Comparator<Classifier>() {
+				@Override
+				public int compare(Classifier o1, Classifier o2) {
+					return o1.fitness == o2.fitness ? 0 : (o1.fitness > o2.fitness ? 1 : -1);
+				}
+			});
+			double hyperP = hypervolumn.calcHyperVolumn(A.get(A.size() - 1).getV(), new Qvector(-10, -10));
+			hyper[act] = hyperP;
+			// System.out.println(hyperP);
+		}
+		return hyper;
+	}
 
 	public void runIteration(int finalStateCount, String previousState) {
 		String prestate = env.getState();
 		// System.out.println("privious state is above" + env.getState());
 
-		int action;
+		int action = -1;
 		if (previousState != null) {
 			List<Classifier> matchSet = generateMatchSet(previousState);
-			double[] predictions = generatePredictions(matchSet);
+
 			if (XienceMath.randomInt(params.numActions) <= -1) {
-				action = selectAction(predictions);
+				if (params.actionSelection.equals("maxN")) {
+					double[] predictions = generatePredictions(matchSet);
+					action = selectAction(predictions);
+				}
+				if (params.actionSelection.equals("maxH")) {
+					double[] hyperP = calHyper(previousState);
+					action = selectAction(hyperP);
+				}
 			} else {
 				action = XienceMath.randomInt(params.numActions);
 			}
 		} else {
 			action = XienceMath.randomInt(params.numActions);
 		}
-	
-//	public void runIteration(int finalStateCount, String previousState, String distance, String explore) {
-//		String prestate = env.getState();
-//		// System.out.println("privious state is above" + env.getState());
-//
-//		int action;
-//		if (previousState != null) {
-//			List<Classifier> matchSet = generateMatchSet(previousState);
-//			double[] predictions = generatePredictions(matchSet);
-//			
-//			
-//			if (XienceMath.randomInt(params.numActions) <= -1) {
-//				if(explore=="largenumber"){
-//				action = selectAction(predictions);}
-//				else{
-//					action = selectAction(calculateHyper());
-//				}
-//			} else {
-//				action = XienceMath.randomInt(params.numActions);
-//			}
-//		} else {
-//			action = XienceMath.randomInt(params.numActions);
-//		}
 
-		// int action;
-		// if(previousState!=null){
-		// List<Classifier> matchSet = generateMatchSet(previousState);
-		// double[] predictions = generatePredictions(matchSet);
-		// action = selectAction(predictions);
-		// }else{
-		// action = XienceMath.randomInt(params.numActions);
+		// if (i == 1) {
+		// action = 2;
 		// }
-
-		if (i == 1) {
-			action = 2;
-		}
-		if (i == 2) {
-			action = 2;
-
-		}
-		if (i == 3) {
-			action = 2;
-
-		}
-		if (i == 4) {
-			action = 3;
-
-		}
-		if (i == 5) {
-			action = 3;
-
-		}
-		if (i == 6) {
-			action = 3;
-
-		}
-		if (i == 7) {
-			action = 3;
-
-		}
-		if (i == 8) {
-			action = 3;
-
-		}
-		if (i == 9) {
-			action = 1;
-
-		}
-		if (i == 10) {
-			action = 3;
-
-		}
-		if (i == 11) {
-			action = 3;
-
-		}
-		if (i == 12) {
-			action = 3;
-
-		}
-		if (i == 13) {
-			action = 3;
-
-		}
-		if (i == 14) {
-			action = 3;
-
-		}
-		if (i == 15) {
-			action = 1;
-
-		}
-		if (i == 16) {
-			action = 3;
-		}
-		if (i == 17) {
-			action = 3;
-		}
-		if (i == 18) {
-			action = 3;
-		}
-		if (i == 19) {
-			action = 3;
-		}
-		if (i == 20) {
-			action = 3;
-		}
-		if (i == 21) {
-			action = 1;
-		}
-		if (i == 22) {
-			action = 3;
-		}
-		if (i == 23) {
-			action = 1;
-		}
+		// if (i == 2) {
+		// action = 2;
+		//
+		// }
+		// if (i == 3) {
+		// action = 2;
+		//
+		// }
+		// if (i == 4) {
+		// action = 3;
+		//
+		// }
+		// if (i == 5) {
+		// action = 3;
+		//
+		// }
+		// if (i == 6) {
+		// action = 3;
+		//
+		// }
+		// if (i == 7) {
+		// action = 3;
+		//
+		// }
+		// if (i == 8) {
+		// action = 3;
+		//
+		// }
+		// if (i == 9) {
+		// action = 1;
+		//
+		// }
+		// if (i == 10) {
+		// action = 3;
+		//
+		// }
+		// if (i == 11) {
+		// action = 3;
+		//
+		// }
+		// if (i == 12) {
+		// action = 3;
+		//
+		// }
+		// if (i == 13) {
+		// action = 3;
+		//
+		// }
+		// if (i == 14) {
+		// action = 3;
+		//
+		// }
+		// if (i == 15) {
+		// action = 1;
+		//
+		// }
+		// if (i == 16) {
+		// action = 3;
+		// }
+		// if (i == 17) {
+		// action = 3;
+		// }
+		// if (i == 18) {
+		// action = 3;
+		// }
+		// if (i == 19) {
+		// action = 3;
+		// }
+		// if (i == 20) {
+		// action = 3;
+		// }
+		// if (i == 21) {
+		// action = 1;
+		// }
+		// if (i == 22) {
+		// action = 3;
+		// }
+		// if (i == 23) {
+		// action = 1;
+		// }
 		// if (i == 23) {
 		// action = 2;
 		// }
@@ -489,22 +454,22 @@ public class NXCS {
 		timestamp = timestamp + 1;
 		i++;
 	}
-//	public double[] calculateHyper(){
-//	//TODO: hypervolum at this state
-//	double[] hyper = [0,0,0,0];
-//	for(int i=0;i<4;i++){
-//		List<Classifier> A = C.stream().filter(b -> b.action == i)
-//				.collect(Collectors.toList());
-//		Collections.sort(A, new Comparator<Classifier>() {
-//			@Override
-//			public int compare(Classifier o1, Classifier o2) {
-//				return o1.fitness == o2.fitness ? 0 : (o1.fitness > o2.fitness ? 1 : -1);
-//			}
-//		});
-//		hyper[i] = hypervolumn.calcHyperVolumn(A.get(A.size() - 1).getV(),
-//				new Qvector(-10, -10));
-//	}
-//}
+	// public double[] calculateHyper(){
+	// //TODO: hypervolum at this state
+	// double[] hyper = [0,0,0,0];
+	// for(int i=0;i<4;i++){
+	// List<Classifier> A = C.stream().filter(b -> b.action == i)
+	// .collect(Collectors.toList());
+	// Collections.sort(A, new Comparator<Classifier>() {
+	// @Override
+	// public int compare(Classifier o1, Classifier o2) {
+	// return o1.fitness == o2.fitness ? 0 : (o1.fitness > o2.fitness ? 1 : -1);
+	// }
+	// });
+	// hyper[i] = hypervolumn.calcHyperVolumn(A.get(A.size() - 1).getV(),
+	// new Qvector(-10, -10));
+	// }
+	// }
 
 	/**
 	 * Generates a set of classifiers that match the given state. Looks first
@@ -772,6 +737,31 @@ public class NXCS {
 		return PA;
 	}
 
+	public double[] generateWeightsPredictions(List<Classifier> setM, Point weights) {
+		assert(setM != null && setM.size() >= params.thetaMNA) : "Invalid match set";
+		double[] PA = new double[params.numActions];
+		int bestAction = 0;
+
+		List<ActionPareto> NDV = new ArrayList<ActionPareto>();
+		NDV = getParetoVVector(setM);
+
+		int m = NDV.get(0).getAction();
+
+		double maxScalar = NDV.get(0).getPareto().get(0) * weights.getX()
+				+ NDV.get(0).getPareto().get(1) * weights.getY();
+
+		
+		for (ActionPareto act : NDV) {
+			if (act.getPareto().get(0) * weights.getX() + act.getPareto().get(1) * weights.getY() > maxScalar) {
+				m = act.getAction();
+				maxScalar = act.getPareto().get(0) * weights.getX() + act.getPareto().get(1) * weights.getY();
+			}
+			
+		}
+		PA[m] = 1;
+		return PA;
+	}
+
 	/**
 	 * get all the unique V of curState and count for each action
 	 * 
@@ -820,7 +810,7 @@ public class NXCS {
 	 *            The predictions to use to select the action
 	 * @return The action selected
 	 */
-	//TODO:SELECT THE MAX NUMBER ACITON!!!!!!
+	// TODO:SELECT THE MAX NUMBER ACITON!!!!!!
 	private int selectAction(double[] predictions) {
 		return (int) XienceMath.choice(IntStream.range(0, params.numActions).boxed().toArray(), predictions);
 	}
@@ -982,8 +972,6 @@ public class NXCS {
 		actionSet.stream().forEach(x -> x.conditionNext = currentState);
 
 		// Update standard parameters
-		minDistance dis = new minDistance();
-
 		for (Classifier clas : actionSet) {
 			clas.experience++;
 			if (clas.experience < 1. / params.beta) {
@@ -1045,7 +1033,7 @@ public class NXCS {
 				// P"+P+ " clas.getV()"+clas.getV()+ "dis:"+dis.getJDistance(P,
 				// clas.getV())+" clas.experience"+clas.experience);
 				// }
-				clas.error = clas.error + (dis.getJDistance(P, clas.getV()) - clas.error) / clas.experience;
+				clas.error = clas.error + (params.disCalc.getDistance(P, clas.getV()) - clas.error) / clas.experience;
 				// System.out.println(
 				// "CLAS P:" + P + "CLAS V:" + clas.getV() + "CLAS DIS:" +
 				// dis.getJDistance(P, clas.getV()));
@@ -1091,7 +1079,7 @@ public class NXCS {
 					// "dis:"+dis.getJDistance(P, clas.getV())+"
 					// params.beta"+params.beta);
 				}
-				clas.error = clas.error + (dis.getJDistance(P, clas.getV()) - clas.error) * params.beta;
+				clas.error = clas.error + (params.disCalc.getDistance(P, clas.getV()) - clas.error) * params.beta;
 				// System.out.println("clas.error after:" + clas.error);
 			}
 		}

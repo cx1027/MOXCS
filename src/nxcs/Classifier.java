@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import nxcs.distance.*;
+
 //import xcs.testbed.Range;
 
 /**
@@ -100,6 +102,7 @@ public class Classifier implements Serializable {
 	private ArrayList<Qvector> Q;
 	private ArrayList<Qvector> V;
 	private ArrayList<MinDistanceV> Vset;
+	private IDistanceCalculator disCalc;
 
 	public Qvector getR() {
 		return R;
@@ -139,7 +142,6 @@ public class Classifier implements Serializable {
 	}
 
 	public void setV(ArrayList<Qvector> v, ArrayList<Qvector> P) {
-		minDistance dis = new minDistance();
 		boolean flag = false;
 		// if Vset empty
 		if (Vset.size() < 1) {
@@ -152,7 +154,7 @@ public class Classifier implements Serializable {
 					minDisV.increaseExp();
 					flag = true;
 				}
-				minDisV.setAvgDis(dis.getJDistance(P, minDisV.getNewV()));
+				minDisV.setAvgDis(disCalc.getDistance(P, minDisV.getNewV()));
 				// System.out.println("VSET P:" + P + " v:" + v + "VSET avgDis:"
 				// + minDisV.getAvgDis());
 			}
@@ -161,7 +163,7 @@ public class Classifier implements Serializable {
 		if (flag == false) {
 			MinDistanceV temp = new MinDistanceV(v);
 			temp.increaseExp();
-			temp.setAvgDis(dis.getJDistance(P, v));
+			temp.setAvgDis(disCalc.getDistance(P, v));
 			Vset.add(temp);
 		}
 
@@ -225,6 +227,8 @@ public class Classifier implements Serializable {
 		timestamp = 0;
 		averageSize = 1;
 		numerosity = 1;
+		
+		IDistanceCalculator disCalc = params.disCalc;
 
 		// this.cloner = new Cloner();
 
@@ -245,7 +249,7 @@ public class Classifier implements Serializable {
 			build.append('0');
 		}
 		conditionNext = build.toString();
-
+		this.disCalc = params.disCalc;
 	}
 
 	/**
@@ -293,6 +297,7 @@ public class Classifier implements Serializable {
 			build.append('0');
 		}
 		conditionNext = build.toString();
+		this.disCalc = params.disCalc;
 	}
 
 	/**
