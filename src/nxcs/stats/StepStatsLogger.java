@@ -70,15 +70,17 @@ public class StepStatsLogger {
 			ArrayList<ArrayList<StepSnapshot>> result) {
 		double matchedCnt = 0.0;
 		double cCnt = 0.0;
+		double pathMatchCnt = 0.0;
 		ArrayList<StepSnapshot> resultFlat = flatNestedArrayList(result);
 
 		for (StepSnapshot item : resultFlat) {
 			matchedCnt += findMatch(item, expectFlat) ? 1 : 0;
 		}
 		cCnt = (double) resultFlat.stream().filter(x -> x.getSteps() == -1).count();
+		
 
 		int timeStamp = result.get(0).get(0).getTimestamp();
-		return new StepStatsPoint(timeStamp, matchedCnt / (matchedCnt + cCnt),
+		return new StepStatsPoint(timeStamp, matchedCnt / resultFlat.size(),//(matchedCnt + cCnt),
 				resultFlat.size() * 1.0 / expectFlat.size());
 	}
 
@@ -110,7 +112,7 @@ public class StepStatsLogger {
 	public void calculateMatchPercentage(ArrayList<ArrayList<StepSnapshot>> expect) {
 		ArrayList<StepSnapshot> expectFlat = flatNestedArrayList(expect);
 		ArrayList<StepStatsPoint> sts = new ArrayList<StepStatsPoint>();
-		// a/(a+c)
+		// stepSnapshots for trail1
 		for (ArrayList<ArrayList<StepSnapshot>> r : this.stepSnapshots) {
 			sts.add(calculateMatchedRate(expectFlat, r));
 		}
@@ -129,11 +131,11 @@ public class StepStatsLogger {
 		dataWriter.write("Number of Learning Problems, Avg. Matched Rate, Avg. Coverage Rate" + "\n");
 		List<StepStatsPoint> averages = new ArrayList<StepStatsPoint>();
 
-		for (int i = 0; i < this.multiStatsPoints.size(); i++) {
-			File finalLogFile = new File(logFile.replaceAll("<TIMESTEP_NUM>", "" + i));
+		//for (int i = 0; i < this.statsPoints.size(); i++) {
+			File finalLogFile = new File(logFile.replaceAll("<TIMESTEP_NUM>", ""));
 			finalLogFile.getParentFile().mkdirs();
 			FileWriter logWriter = new FileWriter(finalLogFile);
-			List<StepStatsPoint> stats = this.multiStatsPoints.get(i);
+			List<StepStatsPoint> stats = this.statsPoints;
 			try {
 				for (int j = 0; j < stats.size(); j++) {
 					StepStatsPoint s = stats.get(j);
@@ -144,7 +146,7 @@ public class StepStatsLogger {
 			} finally {
 				logWriter.close();
 			}
-		}
+		//}
 		dataWriter.close();
 
 		csv = new File(csvFile.replaceAll("<TRIAL_NUM>", "step_log"));
@@ -172,6 +174,8 @@ public class StepStatsLogger {
 		XYSeries[] series = new XYSeries[2];
 		series[0] = new XYSeries("Average Matched Rate");
 		series[1] = new XYSeries("Average Coverage Rate");
+		series[0].add(0,0);
+		series[1].add(0,0);
 		for (StepStatsPoint s : averages) {
 			series[0].add(s.timestamp, s.matchedRate);
 			series[1].add(s.timestamp, s.coverage);
@@ -201,6 +205,8 @@ public class StepStatsLogger {
 		XYSeries[] series = new XYSeries[2];
 		series[0] = new XYSeries("Average Matched Rate");
 		series[1] = new XYSeries("Average Coverage Rate");
+		series[0].add(0,0);
+		series[1].add(0,0);
 		for (StepStatsPoint s : averages) {
 			series[0].add(s.timestamp, s.matchedRate);
 			series[1].add(s.timestamp, s.coverage);

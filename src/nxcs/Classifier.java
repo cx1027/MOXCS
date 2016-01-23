@@ -9,6 +9,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -174,7 +175,14 @@ public class Classifier implements Serializable {
 	private void chooseV() {
 		boolean flag = false;
 		ArrayList<MinDistanceV> validVset = new ArrayList<MinDistanceV>();
-		Collections.sort(Vset, (a, b) -> (int) ((a.getAvgDis() - b.getAvgDis()) * 10024));
+//		Collections.sort(Vset, (a, b) -> (int) ((a.getAvgDis() - b.getAvgDis()) * 10024));
+		Collections.sort(Vset, new Comparator<MinDistanceV>() {
+			@Override
+			public int compare(MinDistanceV a, MinDistanceV b) {
+				return a.getAvgDis() == b.getAvgDis() ? 0 : (a.getAvgDis() > b.getAvgDis() ? 1 : -1);
+			}
+		});
+		
 		if (Vset.size() > 1) {
 			validVset = (ArrayList<MinDistanceV>) Vset.stream().filter(v -> v.getExp() > 1)
 					.collect(Collectors.toList());
@@ -200,7 +208,13 @@ public class Classifier implements Serializable {
 
 	private void trimVset() {
 		if (Vset.size() > 3) {
-			Collections.sort(Vset, (a, b) -> (int) ((a.getAvgDis() - b.getAvgDis()) * 10024));
+//			Collections.sort(Vset, (a, b) -> (int) ((a.getAvgDis() - b.getAvgDis()) * 10024));
+			Collections.sort(Vset, new Comparator<MinDistanceV>() {
+				@Override
+				public int compare(MinDistanceV a, MinDistanceV b) {
+					return a.getAvgDis() == b.getAvgDis() ? 0 : (a.getAvgDis() > b.getAvgDis() ? 1 : -1);
+				}
+			});
 			Vset.remove(Vset.size() - 1);
 		}
 

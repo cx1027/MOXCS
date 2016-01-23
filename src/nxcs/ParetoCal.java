@@ -63,7 +63,7 @@ public class ParetoCal {
 			}
 
 		} catch (Exception ex) {
-			System.console().printf("pareto error!");
+			System.console().printf("pareto error!" + ex.getMessage());
 		}
 		return archivinglist;
 	}

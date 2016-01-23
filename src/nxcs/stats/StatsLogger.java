@@ -111,6 +111,12 @@ public class StatsLogger {
 		series[3] = new XYSeries("Average Macro Classifier Proportion");
 		series[4] = new XYSeries(performanceMeasure);
 		series[5] = new XYSeries(hyperMeasure);
+		series[0].add(0, 0);
+		series[1].add(0, 0);
+		series[2].add(0, 0);
+		series[3].add(0, 0);
+		series[4].add(0, 0);
+		series[5].add(0, 0);
 		for (Snapshot s : averages) {
 			series[0].add(s.getTimestamp(), s.getPopulationSize());
 			series[1].add(s.getTimestamp(), s.getAverageFitness());
@@ -173,6 +179,12 @@ public class StatsLogger {
 		}
 
 		for (int i = 0; i < snapshots.size(); i++) {
+			series[i][0].add(0, 0);
+			series[i][1].add(0, 0);
+			series[i][2].add(0, 0);
+			series[i][3].add(0, 0);
+			series[i][4].add(0, 0);
+			series[i][5].add(0, 0);
 			for (Snapshot s : snapshots.get(i)) {
 				series[i][0].add(s.getTimestamp(), s.getPopulationSize());
 				series[i][1].add(s.getTimestamp(), s.getAverageFitness());

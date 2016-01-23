@@ -143,6 +143,9 @@ public class NXCS {
 		for (int action = 0; action < params.numActions; action++) {
 			final int act = action;
 			List<Classifier> A = matchSet.stream().filter(b -> b.action == act).collect(Collectors.toList());
+			if (A.size() == 0) {
+				continue;
+			}
 			Collections.sort(A, new Comparator<Classifier>() {
 				@Override
 				public int compare(Classifier o1, Classifier o2) {
@@ -173,8 +176,12 @@ public class NXCS {
 					return o1.fitness == o2.fitness ? 0 : (o1.fitness > o2.fitness ? 1 : -1);
 				}
 			});
-			double hyperP = hypervolumn.calcHyperVolumn(A.get(A.size() - 1).getV(), new Qvector(-10, -10));
-			hyper[act] = hyperP;
+			if (A.size() == 0) {
+				hyper[act] = 0;
+			} else {
+				double hyperP = hypervolumn.calcHyperVolumn(A.get(A.size() - 1).getV(), new Qvector(-10, -10));
+				hyper[act] = hyperP;
+			}
 			// System.out.println(hyperP);
 		}
 		return hyper;
@@ -188,13 +195,14 @@ public class NXCS {
 		if (previousState != null) {
 			List<Classifier> matchSet = generateMatchSet(previousState);
 
-			if (XienceMath.randomInt(params.numActions) <= -1) {
+			if (XienceMath.randomInt(params.numActions) <= 1) {
 				if (params.actionSelection.equals("maxN")) {
 					double[] predictions = generatePredictions(matchSet);
 					action = selectAction(predictions);
 				}
 				if (params.actionSelection.equals("maxH")) {
 					double[] hyperP = calHyper(previousState);
+					// select best action????????
 					action = selectAction(hyperP);
 				}
 			} else {
@@ -203,93 +211,95 @@ public class NXCS {
 		} else {
 			action = XienceMath.randomInt(params.numActions);
 		}
+		
+		System.out.println("action:" + action);
 
-		// if (i == 1) {
-		// action = 2;
-		// }
-		// if (i == 2) {
-		// action = 2;
-		//
-		// }
-		// if (i == 3) {
-		// action = 2;
-		//
-		// }
-		// if (i == 4) {
-		// action = 3;
-		//
-		// }
-		// if (i == 5) {
-		// action = 3;
-		//
-		// }
-		// if (i == 6) {
-		// action = 3;
-		//
-		// }
-		// if (i == 7) {
-		// action = 3;
-		//
-		// }
-		// if (i == 8) {
-		// action = 3;
-		//
-		// }
-		// if (i == 9) {
-		// action = 1;
-		//
-		// }
-		// if (i == 10) {
-		// action = 3;
-		//
-		// }
-		// if (i == 11) {
-		// action = 3;
-		//
-		// }
-		// if (i == 12) {
-		// action = 3;
-		//
-		// }
-		// if (i == 13) {
-		// action = 3;
-		//
-		// }
-		// if (i == 14) {
-		// action = 3;
-		//
-		// }
-		// if (i == 15) {
-		// action = 1;
-		//
-		// }
-		// if (i == 16) {
-		// action = 3;
-		// }
-		// if (i == 17) {
-		// action = 3;
-		// }
-		// if (i == 18) {
-		// action = 3;
-		// }
-		// if (i == 19) {
-		// action = 3;
-		// }
-		// if (i == 20) {
-		// action = 3;
-		// }
-		// if (i == 21) {
-		// action = 1;
-		// }
-		// if (i == 22) {
-		// action = 3;
-		// }
-		// if (i == 23) {
-		// action = 1;
-		// }
-		// if (i == 23) {
-		// action = 2;
-		// }
+//		 if (i == 1) {
+//		 action = 0;
+//		 }
+//		 if (i == 2) {
+//		 action = 0;
+//		
+//		 }
+//		 if (i == 3) {
+//		 action = 0;
+//		
+//		 }
+//		 if (i == 4) {
+//		 action = 0;
+//		
+//		 }
+//		 if (i == 5) {
+//		 action = 0;
+//		
+//		 }
+//		 if (i == 6) {
+//		 action = 0;
+//		
+//		 }
+//		 if (i == 7) {
+//		 action = 0;
+//		
+//		 }
+//		 if (i == 8) {
+//		 action = 0;
+//		
+//		 }
+//		 if (i == 9) {
+//		 action = 0;
+//		
+//		 }
+//		 if (i == 10) {
+//		 action = 0;
+//		
+//		 }
+//		 if (i == 11) {
+//		 action = 0;
+//		
+//		 }
+//		 if (i == 12) {
+//		 action = 0;
+//		
+//		 }
+//		 if (i == 13) {
+//		 action = 0;
+//		
+//		 }
+//		 if (i == 14) {
+//		 action = 0;
+//		
+//		 }
+//		 if (i == 15) {
+//		 action = 0;
+//		
+//		 }
+//		 if (i == 16) {
+//		 action = 0;
+//		 }
+//		 if (i == 17) {
+//		 action = 0;
+//		 }
+//		 if (i == 18) {
+//		 action = 0;
+//		 }
+//		 if (i == 19) {
+//		 action = 0;
+//		 }
+//		 if (i == 20) {
+//		 action = 0;
+//		 }
+//		 if (i == 21) {
+//		 action = 0;
+//		 }
+//		 if (i == 22) {
+//		 action = 0;
+//		 }
+//		 if (i == 23) {
+//		 action = 1;
+//		 }
+//		 if (i == 23) {
+//		 action = 2;
+//		 }
 		// if (i == 24) {
 		// action = 3;
 		// }
@@ -666,7 +676,13 @@ public class NXCS {
 			List<Classifier> setAA = setM.stream().filter(c -> c.action == actIndex).collect(Collectors.toList());
 			if (setAA.size() > 0) {
 				try {
-					Collections.sort(setAA, (a, b) -> (int) ((a.fitness - b.fitness) * 10024));
+//					Collections.sort(setAA, (a, b) -> (int) ((a.fitness - b.fitness) * 10024));
+					Collections.sort(setAA, new Comparator<Classifier>() {
+						@Override
+						public int compare(Classifier o1, Classifier o2) {
+							return o1.fitness == o2.fitness ? 0 : (o1.fitness > o2.fitness ? 1 : -1);
+						}
+					});
 				} catch (Exception e) {
 					System.out.println(String.format("sorrrrrrrrrrrt"));
 				}
@@ -750,13 +766,12 @@ public class NXCS {
 		double maxScalar = NDV.get(0).getPareto().get(0) * weights.getX()
 				+ NDV.get(0).getPareto().get(1) * weights.getY();
 
-		
 		for (ActionPareto act : NDV) {
 			if (act.getPareto().get(0) * weights.getX() + act.getPareto().get(1) * weights.getY() > maxScalar) {
 				m = act.getAction();
 				maxScalar = act.getPareto().get(0) * weights.getX() + act.getPareto().get(1) * weights.getY();
 			}
-			
+
 		}
 		PA[m] = 1;
 		return PA;
