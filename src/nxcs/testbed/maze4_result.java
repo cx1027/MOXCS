@@ -355,8 +355,9 @@ public class maze4_result implements Environment {
 			// maze.resetToSamePosition(new Point(5, 1));
 
 			// distance and exploration setting
-			String[] distanceChoice = { "MIN", "MAX", "CORE", "J" };
-			String[] actionSelectChoice = { "maxN", "maxH" };
+			String[] discCalcMethods = { "MIN", "MAX", "CORE", "J" };
+
+			String[] actionSelectionMethods = { "maxN", "maxH" };
 
 			// TODO:for different combination, LOOP for trials!!!!!!!!!!!!!!!!!!
 
@@ -380,150 +381,181 @@ public class maze4_result implements Environment {
 			params.doActionSetSubsumption = false;
 			params.doGASubsumption = false;
 
-			params.actionSelection = "maxH";
-			params.disCalc = new JDistanceCalculator();
-			
-
 			NXCS nxcs = new NXCS(maze, params);
-			int finalStateUpperBound = 501;
+			int finalStateUpperBound = 51;
 			int traceUpperBound = 1;
 			Trace trace = new Trace(maze, params);
 			int finalStateCount = 1;
 			boolean logged = false;
 			HyperVolumn hypervolumn = new HyperVolumn();
-			int resultInterval = 50;
-			int numOfChartBars = 50;
-			Point weight = new Point(1,9);
+			int resultInterval = 10;
+			int numOfChartBars = 20;
+			Point weight = new Point(1, 9);
 			// finalStateUpperBound / 20) / 10 * 10 should be 20
 			int chartXInterval = ((finalStateUpperBound / numOfChartBars) > 10)
 					? (finalStateUpperBound / numOfChartBars) / 10 * 10 : 10;
 
-			StatsLogger logger = new StatsLogger(chartXInterval, 0);
+			List<IDistanceCalculator> calcs = new ArrayList<IDistanceCalculator>();
+			for (String actionSelectionMethod : actionSelectionMethods) {
+				for (String discCalcMethod : discCalcMethods) {
+					params.actionSelection = actionSelectionMethod;
 
-			StepStatsLogger stepTrailsLogger = new StepStatsLogger(chartXInterval, 0);
-
-			// System.out.println(String.format("calculate Pareto sum at
-			// every %d times", resultInterval));
-			for (int trailIndex = 0; trailIndex < totalCalcTimes; trailIndex++) {
-				// reset trail status
-				maze.resetPosition();
-				finalStateCount = 1;
-
-				// clear stats
-				stats.clear();
-
-				StepStatsLogger stepLogger = new StepStatsLogger(chartXInterval, 0);
-
-				System.out.println(
-						String.format("--------------------- begin to run %d----------------------", trailIndex));
-
-				// begin
-				while (finalStateCount < finalStateUpperBound) {
-					nxcs.runIteration(finalStateCount, maze.getState());
-
-					if (finalStateCount % resultInterval == 0 && !logged) {
-						double hyperSum = 0;
-						double hyper = 0;
-
-						for (Point p : maze.openLocations) {
-							// calcue hyper for current state , return to a
-							// double[]
-							double[] hyperP = nxcs.calHyper(maze.getStringForState(p.x, p.y));
-							for (int i = 0; i < hyperP.length; i++) {
-								hyper += hyperP[i];
-							}
-						}
-
-						hyperSum += hyper;
-						// hypervolumn of this interval
-						System.out.println("finalStateCount:" + finalStateCount + " Hyper:" + hyperSum);
-						stats.add(new Snapshot(finalStateCount, nxcs.getPopulation(), 0, 0, hyperSum));
-
-						// PRINT CLASSIFIERS
-						maze.printOpenLocationClassifiers(finalStateCount, maze, nxcs);
-
-						// ACS TRACE
-						// collect each open laction's result in a intervel ,
-						// and store it in stepLogger
-						/*************stepLogger.add(maze.traceOpenLocations(finalStateCount, maze, trace, nxcs, params)); *****/
-
-						// TODO:WEIGHT TRACE
-						stepLogger.add(maze.traceWeight(finalStateCount, maze, trace, nxcs, params, weight));
-
-						logged = true;
+					if (discCalcMethod.equals("MIN")) {
+						params.disCalc = new MinDistanceCalculator();
+					}
+					if (discCalcMethod.equals("MAX")) {
+						params.disCalc = new MaxDistanceCalculator();
+					}
+					if (discCalcMethod.equals("CORE")) {
+						params.disCalc = new CoreDistanceCalculator();
+					}
+					if (discCalcMethod.equals("J")) {
+						params.disCalc = new JDistanceCalculator();
 					}
 
-					// run function below every 50 steps
-					if (maze.isEndOfProblem(maze.getState())) {
+					StatsLogger logger = new StatsLogger(chartXInterval, 0);
+
+					StepStatsLogger stepTrailsLogger = new StepStatsLogger(chartXInterval, 0);
+
+					// System.out.println(String.format("calculate Pareto sum at
+					// every %d times", resultInterval));
+					for (int trailIndex = 0; trailIndex < totalCalcTimes; trailIndex++) {
+						// reset trail status
 						maze.resetPosition();
-						finalStateCount++;
-						logged = false;
-						// System.out.println(finalStateCount);
-					}
-				} // endof while
+						finalStateCount = 0;
 
-				System.out.println("Trained on " + finalStateCount + " final states");
+						// clear stats
+						stats.clear();
 
-				// print classifiers for each openlocations at the end of trial
-				System.out.println("print classifiers for each openlocations");
-				for (Point p : maze.openLocations) {
-					System.out.println("x:" + p.x + " y:" + p.y);
-					List<Classifier> C = nxcs.getMatchSet(maze.getStringForState(p.x, p.y));
-					for (int action : act) {
+						StepStatsLogger stepLogger = new StepStatsLogger(chartXInterval, 0);
 
-						List<Classifier> A = C.stream().filter(b -> b.action == action).collect(Collectors.toList());
-						// Collections.sort(A, (a, b) -> (int) ((a.fitness -
-						// b.fitness) * 10024));
-						Collections.sort(A, new Comparator<Classifier>() {
-							@Override
-							public int compare(Classifier o1, Classifier o2) {
-								return o1.fitness == o2.fitness ? 0 : (o1.fitness > o2.fitness ? 1 : -1);
+						System.out.println(String.format("--------------------- begin to run %d----------------------",
+								trailIndex));
+
+						// begin
+						while (finalStateCount < finalStateUpperBound) {
+							nxcs.runIteration(finalStateCount, maze.getState());
+
+							if (finalStateCount % resultInterval == 0 && !logged) {
+								double hyperSum = 0;
+								double hyper = 0;
+
+								for (Point p : maze.openLocations) {
+									// calcue hyper for current state , return
+									// to a
+									// double[]
+									double[] hyperP = nxcs.calHyper(maze.getStringForState(p.x, p.y));
+									for (int i = 0; i < hyperP.length; i++) {
+										hyper += hyperP[i];
+									}
+								}
+
+								hyperSum += hyper;
+								// hypervolumn of this interval
+								System.out.println("finalStateCount:" + finalStateCount + " Hyper:" + hyperSum);
+								stats.add(new Snapshot(finalStateCount, nxcs.getPopulation(), 0, 0, hyperSum));
+
+								// PRINT CLASSIFIERS
+								maze.printOpenLocationClassifiers(finalStateCount, maze, nxcs);
+
+								// ACS TRACE
+								// collect each open laction's result in a
+								// intervel ,
+								// and store it in stepLogger
+								/*************
+								 * stepLogger.add(maze.traceOpenLocations(
+								 * finalStateCount, maze, trace, nxcs, params));
+								 *****/
+
+								// TODO:WEIGHT TRACE
+								stepLogger.add(maze.traceWeight(finalStateCount, maze, trace, nxcs, params, weight));
+
+								logged = true;
 							}
-						});
-						if (A.size() >= 1) {
-							System.out.println(A.get(A.size() - 1));
-						}
-					}
-				} // open locations
 
-				// Plot the picture of the whole result
-				// logger.logRun(stats);
+							// run function below every 50 steps
+							if (maze.isEndOfProblem(maze.getState())) {
+								maze.resetPosition();
+								finalStateCount++;
+								logged = false;
+								// System.out.println(finalStateCount);
+							}
+						} // endof while
 
-				// try {
-				// logger.writeLogAndCSVFiles(String.format("log/csv/%s/%s/Trial
-				// <TRIAL_NUM>.csv", "MOXCS", "MAZE4"),
-				// String.format("log/datadump/%s/<TIMESTEP_NUM>.log", "MOXCS"),
-				// "Hyper Volumn");
-				// logger.writeChartsAsSinglePlot(
-				// String.format("log/charts/%s/%s/<CHART_TITLE>.png", "MOXCS",
-				// "MAZE4"),
-				// String.format("%s on %s", "MOXCS", "MAZE4"), "performance",
-				// "Hyper Volumn");
-				// } catch (IOException e) {
-				// e.printStackTrace();
-				// }
+						System.out.println("Trained on " + finalStateCount + " final states");
 
-				// painting for each trial
-				System.out.println(String.format("trace result log**************", finalStateCount));
-				stepLogger.calculateMatchPercentage(maze.getOpenLocationExpectPaths());
-				stepLogger.writeLogAndCSVFiles(
-						String.format("log/csv/%s/%s/Trial %d - <TRIAL_NUM>.csv", "MOXCS", "MAZE4", trailIndex),
-						String.format("log/datadump/%s/Trail %d-<TIMESTEP_NUM>.log", "MOXCS", trailIndex));
-				stepLogger.writeChartsAsSinglePlot(
-						String.format("log/charts/%s/%s/Trail %d - <CHART_TITLE>.png", "MOXCS", "MAZE4", trailIndex),
-						String.format("%s on %s", "MOXCS", "MAZE4"));
+						// print classifiers for each openlocations at the end
+						// of trial
+						System.out.println("print classifiers for each openlocations");
+						for (Point p : maze.openLocations) {
+							System.out.println("x:" + p.x + " y:" + p.y);
+							List<Classifier> C = nxcs.getMatchSet(maze.getStringForState(p.x, p.y));
+							for (int action : act) {
 
-				stepTrailsLogger.addBatchStats(stepLogger.getCurrentTrailStats());
+								List<Classifier> A = C.stream().filter(b -> b.action == action)
+										.collect(Collectors.toList());
+								// Collections.sort(A, (a, b) -> (int)
+								// ((a.fitness -
+								// b.fitness) * 10024));
+								Collections.sort(A, new Comparator<Classifier>() {
+									@Override
+									public int compare(Classifier o1, Classifier o2) {
+										return o1.fitness == o2.fitness ? 0 : (o1.fitness > o2.fitness ? 1 : -1);
+									}
+								});
+								if (A.size() >= 1) {
+									System.out.println(A.get(A.size() - 1));
+								}
+							}
+						} // open locations
 
-			} // endof z loop
+						// Plot the picture of the whole result
+						// logger.logRun(stats);
 
-			// painting for the avg result for 30 trials
-			stepTrailsLogger.writeAverageChartsAsSinglePlot(
-					String.format("log/charts/%s/%s/Trail %s - <CHART_TITLE>.png", "MOXCS", "MAZE4", "x"),
-					String.format("%s on %s", "MOXCS", "MAZE4"));
-			System.out.println(String.format("------Result avg of %d------", totalCalcTimes));
-			writer.write(String.format("------Result avg of %d------", totalCalcTimes));
-			writer.newLine();
+						// try {
+						// logger.writeLogAndCSVFiles(String.format("log/csv/%s/%s/Trial
+						// <TRIAL_NUM>.csv", "MOXCS", "MAZE4"),
+						// String.format("log/datadump/%s/<TIMESTEP_NUM>.log",
+						// "MOXCS"),
+						// "Hyper Volumn");
+						// logger.writeChartsAsSinglePlot(
+						// String.format("log/charts/%s/%s/<CHART_TITLE>.png",
+						// "MOXCS",
+						// "MAZE4"),
+						// String.format("%s on %s", "MOXCS", "MAZE4"),
+						// "performance",
+						// "Hyper Volumn");
+						// } catch (IOException e) {
+						// e.printStackTrace();
+						// }
+
+						// painting for each trial
+						System.out.println(String.format("trace result log**************", finalStateCount));
+						stepLogger.calculateMatchPercentage(maze.getOpenLocationExpectPaths());
+						stepLogger.writeLogAndCSVFiles(
+								String.format("log/csv/%s/%s/%s - %s - Trial %d - <TRIAL_NUM>.csv", "MOXCS", "MAZE4",
+										actionSelectionMethod, discCalcMethod, trailIndex),
+								String.format("log/datadump/%s/%s - %s - Trail %d-<TIMESTEP_NUM>.log", "MOXCS",
+										actionSelectionMethod, discCalcMethod, trailIndex));
+						stepLogger.writeChartsAsSinglePlot(
+								String.format("log/charts/%s/%s/%s - %s - Trail %d - <CHART_TITLE>.png", "MOXCS",
+										"MAZE4", actionSelectionMethod, discCalcMethod, trailIndex),
+								String.format("%s on %s", "MOXCS", "MAZE4"));
+
+						stepTrailsLogger.addBatchStats(stepLogger.getCurrentTrailStats());
+
+					} // endof z loop
+
+					// painting for the avg result for 30 trials
+					stepTrailsLogger.writeAverageChartsAsSinglePlot(
+							String.format("log/charts/%s/%s/%s - %s - Trail %s - <CHART_TITLE>.png", "MOXCS", "MAZE4",
+									actionSelectionMethod, discCalcMethod, "x"),
+							String.format("%s on %s", "MOXCS", "MAZE4"));
+					System.out.println(String.format("------Result avg of %d------", totalCalcTimes));
+					writer.write(String.format("------Result avg of %d------", totalCalcTimes));
+					writer.newLine();
+				} // calculator loop
+			} // action selection loop
 
 		} catch (Exception e) {
 			e.printStackTrace();
