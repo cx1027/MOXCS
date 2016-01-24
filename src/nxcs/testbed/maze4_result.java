@@ -342,7 +342,7 @@ public class maze4_result implements Environment {
 		File logFile = new File(timeLog);
 
 		writer = new BufferedWriter(new FileWriter(logFile));
-		int totalCalcTimes = 1;
+		int totalCalcTimes = 3;
 
 		act.add(0);
 		act.add(1);
@@ -384,7 +384,7 @@ public class maze4_result implements Environment {
 			
 			
 			
-			int finalStateUpperBound = 101;
+			int finalStateUpperBound = 501;
 			int finalStateCount = 1;
 			boolean logged = false;
 			HyperVolumn hypervolumn = new HyperVolumn();
@@ -416,14 +416,14 @@ public class maze4_result implements Environment {
 
 					StepStatsLogger stepTrailsLogger = new StepStatsLogger(chartXInterval, 0);
 
-					maze4_result maze = new maze4_result("data/maze4.txt");
-					NXCS nxcs = new NXCS(maze, params);
-					
-					Trace trace = new Trace(maze, params);
-					
 					// System.out.println(String.format("calculate Pareto sum at
 					// every %d times", resultInterval));
 					for (int trailIndex = 0; trailIndex < totalCalcTimes; trailIndex++) {
+						maze4_result maze = new maze4_result("data/maze4.txt");
+						NXCS nxcs = new NXCS(maze, params);
+						
+						Trace trace = new Trace(maze, params);
+						
 						// reset trail status
 						maze.resetPosition();
 						finalStateCount = 1;
@@ -441,30 +441,6 @@ public class maze4_result implements Environment {
 							nxcs.runIteration(finalStateCount, maze.getState());
 
 							if (finalStateCount % resultInterval == 0 && !logged) {
-
-//								System.out
-//										.println("print classifiers for each openlocations:" + finalStateCount + ":x");
-//								for (Point p : maze.openLocations) {
-//									System.out.println("x:" + p.x + " y:" + p.y);
-//									List<Classifier> C = nxcs.getMatchSet(maze.getStringForState(p.x, p.y));
-//									for (int action : act) {
-//
-//										List<Classifier> A = C.stream().filter(b -> b.action == action)
-//												.collect(Collectors.toList());
-//
-//										Collections.sort(A, new Comparator<Classifier>() {
-//											@Override
-//											public int compare(Classifier o1, Classifier o2) {
-//												return o1.fitness == o2.fitness ? 0
-//														: (o1.fitness > o2.fitness ? 1 : -1);
-//											}
-//										});
-//										if (A.size() >= 1) {
-//											System.out.println(A.get(A.size() - 1));
-//										}
-//									}
-//								} // open locations
-
 								double hyperSum = 0;
 
 								for (Point p : maze.openLocations) {
@@ -501,7 +477,6 @@ public class maze4_result implements Environment {
 
 							// run function below every 50 steps
 							if (maze.isEndOfProblem(maze.getState())) {
-								System.out.println("end"+maze.getxy());
 								maze.resetPosition();
 								finalStateCount++;
 								logged = false;
@@ -598,7 +573,6 @@ public class maze4_result implements Environment {
 		ArrayList<ArrayList<StepSnapshot>> locStats = new ArrayList<ArrayList<StepSnapshot>>();
 		for (Point p : maze.openLocations) {
 			maze.resetToSamePosition(p);
-			System.out.println(String.format("START TARCE*************" + "POINT:" + p));
 			String startState = maze.getState();
 			ArrayList<StepSnapshot> trc = trace.traceStartWithWeights(timeStamp, maze, params, nxcs, p, weights);
 			// ArrayList<StepSnapshot> trc = trace.traceStart(startState, nxcs);
@@ -617,7 +591,7 @@ public class maze4_result implements Environment {
 
 	private void printOpenLocationClassifiers(int timestamp, maze4_result maze, NXCS nxcs) {
 		for (Point p : maze.openLocations) {
-			System.out.println(String.format("%d\t location:%d,%d", timestamp, (int) p.getX(), (int) p.getY()));
+//			System.out.println(String.format("%d\t location:%d,%d", timestamp, (int) p.getX(), (int) p.getY()));
 			List<Classifier> C = nxcs.getMatchSet(maze.getStringForState(p.x, p.y));
 			for (int action : act) {
 
