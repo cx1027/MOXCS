@@ -350,14 +350,13 @@ public class maze4_result implements Environment {
 
 		try {
 
-			
 			// maze.resetToSamePosition(new Point(5, 1));
 
 			// distance and exploration setting
 			String[] discCalcMethods = { "MIN", "MAX", "CORE", "J" };
 
 			String[] actionSelectionMethods = { "maxN", "maxH" };
-//			String[] actionSelectionMethods = { "maxH" };
+			// String[] actionSelectionMethods = { "maxH" };
 
 			// TODO:for different combination, LOOP for trials!!!!!!!!!!!!!!!!!!
 
@@ -380,16 +379,17 @@ public class maze4_result implements Environment {
 			params.thetaDel = 200;
 			params.doActionSetSubsumption = false;
 			params.doGASubsumption = false;
-			
-			
-			
-			int finalStateUpperBound = 1501;
+
+			int finalStateUpperBound = 3001;
 			int finalStateCount = 1;
 			boolean logged = false;
 			HyperVolumn hypervolumn = new HyperVolumn();
 			int resultInterval = 1;
 			int numOfChartBars = 20;
-			Point weight = new Point(1, 9);
+			ArrayList<Point> traceWeights = new ArrayList<Point>();
+			traceWeights.add(new Point(10, 90));
+			traceWeights.add(new Point(95, 5));
+
 			// finalStateUpperBound / 20) / 10 * 10 should be 20
 			int chartXInterval = ((finalStateUpperBound / numOfChartBars) > 10)
 					? (finalStateUpperBound / numOfChartBars) / 10 * 10 : 10;
@@ -420,9 +420,9 @@ public class maze4_result implements Environment {
 					for (int trailIndex = 0; trailIndex < totalCalcTimes; trailIndex++) {
 						maze4_result maze = new maze4_result("data/maze4.txt");
 						NXCS nxcs = new NXCS(maze, params);
-						
+
 						Trace trace = new Trace(maze, params);
-						
+
 						// reset trail status
 						maze.resetPosition();
 						finalStateCount = 1;
@@ -432,8 +432,9 @@ public class maze4_result implements Environment {
 
 						StepStatsLogger stepLogger = new StepStatsLogger(chartXInterval, 0);
 
-						System.out.println(String.format("######### begin to run of: Action:%s - Distance:%s - Trail#: %s ",
-								actionSelectionMethod, distCalcMethod, trailIndex));
+						System.out.println(
+								String.format("######### begin to run of: Action:%s - Distance:%s - Trail#: %s ",
+										actionSelectionMethod, distCalcMethod, trailIndex));
 
 						// begin
 						while (finalStateCount < finalStateUpperBound) {
@@ -469,8 +470,11 @@ public class maze4_result implements Environment {
 								 *****/
 
 								// TODO:WEIGHT TRACE for trail
-								stepLogger.add(maze.traceWeight(finalStateCount, maze, trace, nxcs, params, weight));
-
+								ArrayList<ArrayList<ArrayList<StepSnapshot>>> trailStats = new ArrayList<ArrayList<ArrayList<StepSnapshot>>>();
+								for (Point weight : traceWeights) {
+									trailStats.add(maze.traceWeight(finalStateCount, maze, trace, nxcs, params, weight));
+								}
+								stepLogger.addRawStats(trailStats);
 								logged = true;
 							}
 
@@ -505,12 +509,13 @@ public class maze4_result implements Environment {
 
 						// painting for each trial
 						System.out.println(String.format("trace result log**************", finalStateCount));
-						stepLogger.calculateMatchPercentage(maze.getOpenLocationExpectPaths());
+						stepLogger.calculateMatchPercentageForWeights(maze.getOpenLocationExpectPaths());
 						stepLogger.writeLogAndCSVFiles(
 								String.format("log/csv/%s/%s/%s - %s - Trial %d - <TRIAL_NUM>.csv", "MOXCS", "MAZE4",
 										actionSelectionMethod, distCalcMethod, trailIndex),
 								String.format("log/datadump/%s/%s - %s - Trail %d-<TIMESTEP_NUM>.log", "MOXCS",
-										actionSelectionMethod, distCalcMethod, trailIndex));
+										actionSelectionMethod, distCalcMethod, trailIndex),
+								traceWeights);
 						stepLogger.writeChartsAsSinglePlot(
 								String.format("log/charts/%s/%s/%s - %s - Trail %d - <CHART_TITLE>.png", "MOXCS",
 										"MAZE4", actionSelectionMethod, distCalcMethod, trailIndex),
@@ -549,7 +554,6 @@ public class maze4_result implements Environment {
 		ArrayList<ArrayList<StepSnapshot>> locStats = new ArrayList<ArrayList<StepSnapshot>>();
 		for (Point p : maze.openLocations) {
 			maze.resetToSamePosition(p);
-//			System.out.println(String.format("START TARCE*************" + "POINT:" + p));
 			String startState = maze.getState();
 			//
 			ArrayList<StepSnapshot> trc = trace.traceStartWithTwoStates(timeStamp, maze, params, nxcs, p);
@@ -577,7 +581,8 @@ public class maze4_result implements Environment {
 
 	private void printOpenLocationClassifiers(int timestamp, maze4_result maze, NXCS nxcs) {
 		for (Point p : maze.openLocations) {
-//			System.out.println(String.format("%d\t location:%d,%d", timestamp, (int) p.getX(), (int) p.getY()));
+			// System.out.println(String.format("%d\t location:%d,%d",
+			// timestamp, (int) p.getX(), (int) p.getY()));
 			List<Classifier> C = nxcs.getMatchSet(maze.getStringForState(p.x, p.y));
 			for (int action : act) {
 

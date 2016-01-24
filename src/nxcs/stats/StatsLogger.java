@@ -130,6 +130,9 @@ public class StatsLogger {
 				"Macro Classifier Proportion", performanceMeasure, hyperMeasure };
 
 		for (int i = 0; i < labels.length; i++) {
+			//only plot Hyper Volumn
+			if(!labels[i].equals(hyperMeasure)) continue;
+			
 			XYSeriesCollection data = new XYSeriesCollection();
 			data.addSeries(series[i]);
 			JFreeChart chart = ChartFactory.createScatterPlot(labels[i] + "\n" + problem, "Number of Learning Problems",
@@ -160,7 +163,7 @@ public class StatsLogger {
 
 			File finalChartFile = new File(chartFile.replaceAll("<CHART_TITLE>", labels[i]));
 			finalChartFile.getParentFile().mkdirs();
-			ImageIO.write(chart.createBufferedImage(640, 480), "png", finalChartFile);
+			ImageIO.write(chart.createBufferedImage(1024, 768), "png", finalChartFile);
 			System.out.printf("Wrote %s with size %d%n", finalChartFile.getAbsolutePath(), finalChartFile.length());
 		}
 	}
@@ -198,7 +201,7 @@ public class StatsLogger {
 		String[] labels = { "Average Population Size", "Average Classifier Fitness", "Average Classifier Specificity",
 				"Macro Classifier Proportion", performanceMeasure, hyperMeasure };
 
-		for (int i = 0; i < labels.length; i++) {
+		for (int i = 0; i < labels.length; i++) {			
 			XYSeriesCollection data = new XYSeriesCollection();
 			for (int j = 0; j < series.length; j++) {
 				data.addSeries(series[j][i]);

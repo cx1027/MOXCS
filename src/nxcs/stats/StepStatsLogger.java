@@ -37,6 +37,8 @@ public class StepStatsLogger {
 	private ArrayList<ArrayList<ArrayList<ArrayList<StepSnapshot>>>> multiSnapshots = new ArrayList<ArrayList<ArrayList<ArrayList<StepSnapshot>>>>();
 	private ArrayList<ArrayList<StepStatsPoint>> multiStatsPoints = new ArrayList<ArrayList<StepStatsPoint>>();
 
+	private ArrayList<ArrayList<ArrayList<StepSnapshot>>> multiWeightSnapshots = new ArrayList<ArrayList<ArrayList<StepSnapshot>>>();
+
 	private ArrayList<ArrayList<ArrayList<StepSnapshot>>> stepSnapshots = new ArrayList<ArrayList<ArrayList<StepSnapshot>>>();
 	private ArrayList<StepStatsPoint> statsPoints = new ArrayList<StepStatsPoint>();
 
@@ -51,6 +53,18 @@ public class StepStatsLogger {
 
 	public void add(ArrayList<ArrayList<StepSnapshot>> stats) {
 		stepSnapshots.add(stats);
+	}
+
+	public void addRawStats(ArrayList<ArrayList<ArrayList<StepSnapshot>>> stats) {
+		for (int i = 0; i < stats.size(); i++) {
+			if (this.multiSnapshots.size() <= i) {
+				ArrayList<ArrayList<ArrayList<StepSnapshot>>> list = new ArrayList<ArrayList<ArrayList<StepSnapshot>>>();
+				list.add(stats.get(i));
+				this.multiSnapshots.add(list);
+			} else {
+				this.multiSnapshots.get(i).add(stats.get(i));
+			}
+		}
 	}
 
 	public ArrayList<ArrayList<ArrayList<StepSnapshot>>> getCurrentRawStats() {
@@ -77,10 +91,11 @@ public class StepStatsLogger {
 			matchedCnt += findMatch(item, expectFlat) ? 1 : 0;
 		}
 		cCnt = (double) resultFlat.stream().filter(x -> x.getSteps() == -1).count();
-		
 
 		int timeStamp = result.get(0).get(0).getTimestamp();
-		return new StepStatsPoint(timeStamp, matchedCnt / resultFlat.size(),//(matchedCnt + cCnt),
+		return new StepStatsPoint(timeStamp, matchedCnt / resultFlat.size(), // (matchedCnt
+																				// +
+																				// cCnt),
 				resultFlat.size() * 1.0 / expectFlat.size());
 	}
 
@@ -119,7 +134,43 @@ public class StepStatsLogger {
 		this.statsPoints = sts;
 	}
 
-	public void writeLogAndCSVFiles(String csvFile, String logFile) throws IOException {
+	public void calculateMatchPercentageForWeights(ArrayList<ArrayList<StepSnapshot>> expect) {
+		ArrayList<StepSnapshot> expectFlat = flatNestedArrayList(expect);
+		ArrayList<ArrayList<StepStatsPoint>> stsList = new ArrayList<ArrayList<StepStatsPoint>>();
+		// stepSnapshots for trail1
+		for (ArrayList<ArrayList<ArrayList<StepSnapshot>>> rList : this.multiSnapshots) {
+
+			ArrayList<StepStatsPoint> sts = new ArrayList<StepStatsPoint>();
+			for (ArrayList<ArrayList<StepSnapshot>> r : rList) {
+				sts.add(calculateMatchedRate(expectFlat, r));
+			}
+			stsList.add(sts);
+		}
+
+		this.statsPoints = calculateMatchPercentageList(stsList);
+	}
+
+	public ArrayList<StepStatsPoint> calculateMatchPercentageList(ArrayList<ArrayList<StepStatsPoint>> stats) {
+		ArrayList<StepStatsPoint> sts = new ArrayList<StepStatsPoint>();
+		for (int i = 0; i < stats.get(0).size(); i++) {
+			for (int j = 0; j < stats.size(); j++) {
+				if (sts.size() <= i) {
+					sts.add(new StepStatsPoint(stats.get(j).get(i).timestamp, stats.get(j).get(i).matchedRate,
+							stats.get(j).get(i).coverage));
+				} else {
+					sts.get(i).matchedRate += stats.get(j).get(i).matchedRate;
+					sts.get(i).coverage += stats.get(j).get(i).coverage;
+				}
+			}
+		}
+		sts.stream().forEach(x -> {
+			x.matchedRate = x.matchedRate / stats.size();
+			x.coverage = x.coverage / stats.size();
+		});
+		return sts;
+	}
+
+	public void writeLogAndCSVFiles(String csvFile, String logFile, ArrayList<Point> weights) throws IOException {
 		File csv = new File(csvFile.replaceAll("<TRIAL_NUM>", "Average"));
 		csv.getParentFile().mkdirs();
 		FileWriter dataWriter = new FileWriter(csv);
@@ -128,37 +179,40 @@ public class StepStatsLogger {
 		dataWriter.write("Number of Learning Problems, Avg. Matched Rate, Avg. Coverage Rate" + "\n");
 		List<StepStatsPoint> averages = new ArrayList<StepStatsPoint>();
 
-		//for (int i = 0; i < this.statsPoints.size(); i++) {
-			File finalLogFile = new File(logFile.replaceAll("<TIMESTEP_NUM>", ""));
-			finalLogFile.getParentFile().mkdirs();
-			FileWriter logWriter = new FileWriter(finalLogFile);
-			List<StepStatsPoint> stats = this.statsPoints;
-			try {
-				for (int j = 0; j < stats.size(); j++) {
-					StepStatsPoint s = stats.get(j);
-					logWriter.append(s.toString());
-					logWriter.append("\n\n");
-					dataWriter.append(s.toCSV());
-				}
-			} finally {
-				logWriter.close();
+		// for (int i = 0; i < this.statsPoints.size(); i++) {
+		File finalLogFile = new File(logFile.replaceAll("<TIMESTEP_NUM>", ""));
+		finalLogFile.getParentFile().mkdirs();
+		FileWriter logWriter = new FileWriter(finalLogFile);
+		List<StepStatsPoint> stats = this.statsPoints;
+		try {
+			for (int j = 0; j < stats.size(); j++) {
+				StepStatsPoint s = stats.get(j);
+				logWriter.append(s.toString());
+				logWriter.append("\n\n");
+				dataWriter.append(s.toCSV());
 			}
-		//}
+		} finally {
+			logWriter.close();
+		}
+		// }
 		dataWriter.close();
 
 		csv = new File(csvFile.replaceAll("<TRIAL_NUM>", "step_log"));
 		dataWriter = new FileWriter(csv);
-		dataWriter.write("Number of Learning Problems, Open State, Final State, Steps, Path" + "\n");
-		for (int i = 0; i < this.stepSnapshots.size(); i++) {
-			try {
-				ArrayList<StepSnapshot> flat = flatNestedArrayList(stepSnapshots.get(i));
-				for (StepSnapshot s : flat) {
-					dataWriter.append(s.toCSV());
-				}
-			} catch (Exception ex) {
-				System.out.println(ex.getMessage());
-			} finally {
+		dataWriter.write("Weight,Number of Learning Problems, Open State, Final State, Steps, Path" + "\n");
 
+		for (int j = 0; j < this.multiSnapshots.size(); j++) {
+			for (int i = 0; i < this.multiSnapshots.get(j).size(); i++) {
+				try {
+					ArrayList<StepSnapshot> flat = flatNestedArrayList(this.multiSnapshots.get(j).get(i));
+					for (StepSnapshot s : flat) {
+						dataWriter.append(String.format("%d-%d,", weights.get(j).x, weights.get(j).y) + s.toCSV());
+					}
+				} catch (Exception ex) {
+					System.out.println(ex.getMessage());
+				} finally {
+
+				}
 			}
 		}
 		dataWriter.close();
@@ -171,8 +225,8 @@ public class StepStatsLogger {
 		XYSeries[] series = new XYSeries[2];
 		series[0] = new XYSeries("Average Matched Rate");
 		series[1] = new XYSeries("Average Coverage Rate");
-		series[0].add(0,0);
-		series[1].add(0,0);
+		series[0].add(0, 0);
+		series[1].add(0, 0);
 		for (StepStatsPoint s : averages) {
 			series[0].add(s.timestamp, s.matchedRate);
 			series[1].add(s.timestamp, s.coverage);
@@ -202,8 +256,8 @@ public class StepStatsLogger {
 		XYSeries[] series = new XYSeries[2];
 		series[0] = new XYSeries("Average Matched Rate");
 		series[1] = new XYSeries("Average Coverage Rate");
-		series[0].add(0,0);
-		series[1].add(0,0);
+		series[0].add(0, 0);
+		series[1].add(0, 0);
 		for (StepStatsPoint s : averages) {
 			series[0].add(s.timestamp, s.matchedRate);
 			series[1].add(s.timestamp, s.coverage);
@@ -215,7 +269,7 @@ public class StepStatsLogger {
 
 	public void writeChartsAsSinglePlot(String chartFile, String problem, String[] labels, XYSeries[] series)
 			throws IOException {
-		
+
 		for (int i = 0; i < labels.length; i++) {
 			XYSeriesCollection data = new XYSeriesCollection();
 			data.addSeries(series[i]);
@@ -247,7 +301,7 @@ public class StepStatsLogger {
 
 			File finalChartFile = new File(chartFile.replaceAll("<CHART_TITLE>", labels[i]));
 			finalChartFile.getParentFile().mkdirs();
-			ImageIO.write(chart.createBufferedImage(640, 480), "png", finalChartFile);
+			ImageIO.write(chart.createBufferedImage(1024, 748), "png", finalChartFile);
 			System.out.printf("Wrote %s with size %d%n", finalChartFile.getAbsolutePath(), finalChartFile.length());
 		}
 	}
