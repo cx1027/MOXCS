@@ -253,6 +253,22 @@ public class StepStatsLogger {
 	public void writeAverageChartsAsSinglePlot(String chartFile, String problem) throws IOException {
 		List<StepStatsPoint> averages = this.calculateTrailAverage(this.multiStatsPoints);
 
+		File csv = new File(chartFile.replaceAll("<CHART_TITLE>", "Match Rate") + ".csv");
+		csv.getParentFile().mkdirs();
+		FileWriter dataWriter = new FileWriter(csv);
+
+		// Write Column Headers
+		dataWriter.write("Number of Learning Problems, Avg. Matched Rate, Avg. Coverage Rate" + "\n");
+
+		try {
+			for (int j = 0; j < averages.size(); j++) {
+				StepStatsPoint s = averages.get(j);
+				dataWriter.append(s.toCSV());
+			}
+		} finally {
+			dataWriter.close();
+		}
+
 		XYSeries[] series = new XYSeries[2];
 		series[0] = new XYSeries("Average Matched Rate");
 		series[1] = new XYSeries("Average Coverage Rate");
