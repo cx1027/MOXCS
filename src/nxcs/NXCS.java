@@ -156,7 +156,7 @@ public class NXCS {
 		}
 
 		// delete the cls which next state=prestate
-		sortset.removeIf(x -> x.conditionNext.equals(prevState));
+//		sortset.removeIf(x -> x.conditionNext.equals(prevState));
 		double[] predictions = generatePredictions(sortset);
 		return selectAction(predictions);
 	}
@@ -212,7 +212,7 @@ public class NXCS {
 			action = XienceMath.randomInt(params.numActions);
 		}
 		
-		System.out.println("action:" + action);
+//		System.out.println("action:" + action);
 
 //		 if (i == 1) {
 //		 action = 0;
