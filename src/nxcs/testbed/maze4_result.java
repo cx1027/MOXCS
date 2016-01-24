@@ -380,7 +380,7 @@ public class maze4_result implements Environment {
 			params.doActionSetSubsumption = false;
 			params.doGASubsumption = false;
 
-			int finalStateUpperBound = 3001;
+			int finalStateUpperBound = 2001;
 			int finalStateCount = 1;
 			boolean logged = false;
 			HyperVolumn hypervolumn = new HyperVolumn();
@@ -414,6 +414,8 @@ public class maze4_result implements Environment {
 					StatsLogger logger = new StatsLogger(chartXInterval, 0);
 
 					StepStatsLogger stepTrailsLogger = new StepStatsLogger(chartXInterval, 0);
+
+					StatsLogger crossTrialStats = new StatsLogger(chartXInterval, 0);
 
 					// System.out.println(String.format("calculate Pareto sum at
 					// every %d times", resultInterval));
@@ -472,6 +474,7 @@ public class maze4_result implements Environment {
 								// TODO:WEIGHT TRACE for trail
 								ArrayList<ArrayList<ArrayList<StepSnapshot>>> trailStats = new ArrayList<ArrayList<ArrayList<StepSnapshot>>>();
 								for (Point weight : traceWeights) {
+									
 									trailStats.add(maze.traceWeight(finalStateCount, maze, trace, nxcs, params, weight));
 								}
 								stepLogger.addRawStats(trailStats);
@@ -487,20 +490,21 @@ public class maze4_result implements Environment {
 							}
 						} // endof while
 
-						System.out.println("Trained on " + finalStateCount + " final states");
+						System.out.println("Trained on " + finalStateCount + " final states - "+ actionSelectionMethod+" - "+ distCalcMethod);
 
 						// Plot the picture of the whole result
 						logger.logRun(stats);
 
+						crossTrialStats.logTrial(logger.getStatsList());
 						try {
 							logger.writeLogAndCSVFiles(
-									String.format("log/csv/%s/%s/%s - %s - Trial %d - <TRIAL_NUM>-HyperVolumn.csv",
+									String.format("log/maze4/csv/%s/%s/%s - %s - Trial %d - <TRIAL_NUM>-HyperVolumn.csv",
 											"MOXCS", "MAZE4", actionSelectionMethod, distCalcMethod, trailIndex),
-									String.format("log/datadump/%s/%s - %s - Trail %d-<TIMESTEP_NUM> - hypervolumn.log",
+									String.format("log/maze4/datadump/%s/%s - %s - Trail %d-<TIMESTEP_NUM> - hypervolumn.log",
 											"MOXCS", actionSelectionMethod, distCalcMethod, trailIndex),
 									"Hyper Volumn");
 							logger.writeChartsAsSinglePlot(
-									String.format("log/charts/%s/%s/%s - %s - Trail %d - <CHART_TITLE>-hypervolumn.png",
+									String.format("log/maze4/charts/%s/%s/%s - %s - Trail %d - <CHART_TITLE>-hypervolumn.png",
 											"MOXCS", "MAZE4", actionSelectionMethod, distCalcMethod, trailIndex),
 									String.format("%s on %s", "MOXCS", "MAZE4"), "performance", "Hyper Volumn");
 						} catch (IOException e) {
@@ -511,13 +515,13 @@ public class maze4_result implements Environment {
 						System.out.println(String.format("trace result log**************", finalStateCount));
 						stepLogger.calculateMatchPercentageForWeights(maze.getOpenLocationExpectPaths());
 						stepLogger.writeLogAndCSVFiles(
-								String.format("log/csv/%s/%s/%s - %s - Trial %d - <TRIAL_NUM>.csv", "MOXCS", "MAZE4",
+								String.format("log/maze4/csv/%s/%s/%s - %s - Trial %d - <TRIAL_NUM>.csv", "MOXCS", "MAZE4",
 										actionSelectionMethod, distCalcMethod, trailIndex),
-								String.format("log/datadump/%s/%s - %s - Trail %d-<TIMESTEP_NUM>.log", "MOXCS",
+								String.format("log/maze4/datadump/%s/%s - %s - Trail %d-<TIMESTEP_NUM>.log", "MOXCS",
 										actionSelectionMethod, distCalcMethod, trailIndex),
 								traceWeights);
 						stepLogger.writeChartsAsSinglePlot(
-								String.format("log/charts/%s/%s/%s - %s - Trail %d - <CHART_TITLE>.png", "MOXCS",
+								String.format("log/maze4/charts/%s/%s/%s - %s - Trail %d - <CHART_TITLE>.png", "MOXCS",
 										"MAZE4", actionSelectionMethod, distCalcMethod, trailIndex),
 								String.format("%s on %s", "MOXCS", "MAZE4"));
 
@@ -525,8 +529,13 @@ public class maze4_result implements Environment {
 					} // endof z loop
 
 					// painting for the avg result for 30 trials
+					crossTrialStats.writeChartsAsSinglePlot(
+							String.format("log/maze4/charts/%s/%s/%s - %s - Trail %s - HyperVolumn - <CHART_TITLE>.png", "MOXCS", "MAZE4",
+									actionSelectionMethod, distCalcMethod, "x"),
+							String.format("%s on %s", "MOXCS", "MAZE4"), "performance", "Hyper Volumn");
+					
 					stepTrailsLogger.writeAverageChartsAsSinglePlot(
-							String.format("log/charts/%s/%s/%s - %s - Trail %s - <CHART_TITLE>.png", "MOXCS", "MAZE4",
+							String.format("log/maze4/charts/%s/%s/%s - %s - Trail %s - <CHART_TITLE>.png", "MOXCS", "MAZE4",
 									actionSelectionMethod, distCalcMethod, "x"),
 							String.format("%s on %s", "MOXCS", "MAZE4"));
 					System.out.println(String.format("####$##### Result of: Action:%s - Distance:%s - Trail#: %s ",
