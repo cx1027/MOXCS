@@ -315,7 +315,6 @@ public class maze4_result implements Environment {
 
 		if (count > 100) {
 			resetPosition();
-			// System.out.println("reset_position");
 			reward.setAction(5);
 			reward.setPareto(new Qvector(-1, 0));
 		}
@@ -342,7 +341,7 @@ public class maze4_result implements Environment {
 		File logFile = new File(timeLog);
 
 		writer = new BufferedWriter(new FileWriter(logFile));
-		int totalCalcTimes = 3;
+		int totalCalcTimes = 30;
 
 		act.add(0);
 		act.add(1);
@@ -384,7 +383,7 @@ public class maze4_result implements Environment {
 			
 			
 			
-			int finalStateUpperBound = 501;
+			int finalStateUpperBound = 1501;
 			int finalStateCount = 1;
 			boolean logged = false;
 			HyperVolumn hypervolumn = new HyperVolumn();
@@ -550,20 +549,14 @@ public class maze4_result implements Environment {
 		ArrayList<ArrayList<StepSnapshot>> locStats = new ArrayList<ArrayList<StepSnapshot>>();
 		for (Point p : maze.openLocations) {
 			maze.resetToSamePosition(p);
-			System.out.println(String.format("START TARCE*************" + "POINT:" + p));
+//			System.out.println(String.format("START TARCE*************" + "POINT:" + p));
 			String startState = maze.getState();
+			//
 			ArrayList<StepSnapshot> trc = trace.traceStartWithTwoStates(timeStamp, maze, params, nxcs, p);
 			// ArrayList<StepSnapshot> trc = trace.traceStart(startState, nxcs);
 			trc.stream().forEach(x -> x.setTimestamp(timeStamp));
 			locStats.add(trc);
 		}
-		// print stats
-		for (ArrayList<StepSnapshot> l : locStats) {
-			for (StepSnapshot s : l) {
-				System.out.println(s.toString());
-			}
-		}
-
 		return locStats;
 	}
 
@@ -579,13 +572,6 @@ public class maze4_result implements Environment {
 			trc.stream().forEach(x -> x.setTimestamp(timeStamp));
 			locStats.add(trc);
 		}
-		// print stats
-		for (ArrayList<StepSnapshot> l : locStats) {
-			for (StepSnapshot s : l) {
-				System.out.println(s.toString());
-			}
-		}
-
 		return locStats;
 	}
 

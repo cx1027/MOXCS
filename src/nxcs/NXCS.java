@@ -131,8 +131,6 @@ public class NXCS {
 	 * @param prevState
 	 * @return The class the system classifies the given state into
 	 */
-	// public int classify(int timestamp2, Point curr, String state, Point prev,
-	// String prevState) {
 	public int classify(String currState, Point weight) {
 		if (currState.length() != params.stateLength)
 			throw new IllegalArgumentException(
@@ -166,6 +164,45 @@ public class NXCS {
 		return selectAction(predictions);
 	}
 
+	/**
+	 * Classifies the given state using the current knowledge of the system
+	 * 
+	 * @param curr
+	 * @param timestamp2
+	 * 
+	 * @param currState
+	 *            The state to classify
+	 * @param prev
+	 * @param prevState
+	 * @return The class the system classifies the given state into
+	 */
+	public int classify(String currState, String prevState) {
+		if (currState.length() != params.stateLength)
+			throw new IllegalArgumentException(
+					String.format("The given state (%s) is not of the correct length", currState));
+		List<Classifier> matchSet = population.stream().filter(c -> stateMatches(c.condition, currState))
+				.collect(Collectors.toList());
+		List<Classifier> sortset = new ArrayList<Classifier>();
+		for (int action = 0; action < params.numActions; action++) {
+			final int act = action;
+			List<Classifier> A = matchSet.stream().filter(b -> b.action == act).collect(Collectors.toList());
+			if (A.size() == 0) {
+				continue;
+			}
+			Collections.sort(A, new Comparator<Classifier>() {
+				@Override
+				public int compare(Classifier o1, Classifier o2) {
+					return o1.fitness == o2.fitness ? 0 : (o1.fitness > o2.fitness ? 1 : -1);
+				}
+			});
+			sortset.add(A.get(A.size() - 1));
+		}
+
+		// delete the cls which next state=prestate
+//		sortset.removeIf(x -> x.conditionNext.equals(prevState));
+		double[] predictions = generatePredictions(sortset);
+		return selectAction(predictions);
+	}
 	public double[] calHyper(String state) {
 		HyperVolumn hypervolumn = new HyperVolumn();
 		double[] hyper = { 0, 0, 0, 0 };
@@ -856,9 +893,9 @@ public class NXCS {
 	 * 
 	 * }
 	 */
-	// 如果prediction不改变，这个函数是计算Q'+R'得到V'
-	// 然后P=r+valueFunctionEstimation
-	// 考虑valueFunctionEstimation和prediction里面PA的关系
+	// å¦‚æžœpredictionä¸�æ”¹å�˜ï¼Œè¿™ä¸ªå‡½æ•°æ˜¯è®¡ç®—Q'+R'å¾—åˆ°V'
+	// ç„¶å�ŽP=r+valueFunctionEstimation
+	// è€ƒè™‘valueFunctionEstimationå’Œpredictioné‡Œé�¢PAçš„å…³ç³»
 	private double valueFunctionEstimation(List<Classifier> setM) {
 		double[] PA = generatePredictions(setM);
 		double ret = 0;

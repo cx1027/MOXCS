@@ -117,9 +117,6 @@ public class StepStatsLogger {
 			sts.add(calculateMatchedRate(expectFlat, r));
 		}
 		this.statsPoints = sts;
-		for (StepStatsPoint p : sts) {
-			System.out.println(p.toString());
-		}
 	}
 
 	public void writeLogAndCSVFiles(String csvFile, String logFile) throws IOException {
