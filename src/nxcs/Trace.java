@@ -264,7 +264,7 @@ public class Trace {
 	/*
 	 * trace with weights, there is no acs in this function??????
 	 */
-	public ArrayList<StepSnapshot> traceStartWithWeights(int timestamp, maze4_result maze, NXCSParameters params,
+	public ArrayList<StepSnapshot> traceStartWithWeights(int timestamp, Environment maze, NXCSParameters params,
 			NXCS nxcs, Point startPos, Point weights) {
 //		System.out.println(String.format("start Pos:(%d,%d)", (int) startPos.getX(), (int) startPos.getY()));
 		ArrayList<StepSnapshot> ret = new ArrayList<StepSnapshot>();
@@ -343,7 +343,7 @@ public class Trace {
 		return ret;
 	}
 
-	public ArrayList<StepSnapshot> traceStartWithTwoStates(int timestamp, maze4_result maze, NXCSParameters params,
+	public ArrayList<StepSnapshot> traceStartWithTwoStates(int timestamp, Environment maze, NXCSParameters params,
 			NXCS nxcs, Point startPos) {
 		//System.out.println(String.format("start Pos:(%d,%d)", (int) startPos.getX(), (int) startPos.getY()));
 		ArrayList<StepSnapshot> ret = new ArrayList<StepSnapshot>();

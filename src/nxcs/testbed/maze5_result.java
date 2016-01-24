@@ -40,7 +40,7 @@ import nxcs.stats.*;
  * contain a rectangular array of 'O', 'T' and 'F' characters. A sample is given
  * in Mazes/Woods1.txt
  */
-public class maze4_result implements Environment {
+public class maze5_result implements Environment {
 	/**
 	 * The raw characters in the maze
 	 */
@@ -98,7 +98,7 @@ public class maze4_result implements Environment {
 	 * @throws IOException
 	 *             On standard IO problems
 	 */
-	public maze4_result(String mazeFile) throws IOException {
+	public maze5_result(String mazeFile) throws IOException {
 		this(new File(mazeFile));
 	}
 
@@ -110,7 +110,7 @@ public class maze4_result implements Environment {
 	 * @throws IOException
 	 *             On standard IO problems
 	 */
-	public maze4_result(File f) throws IOException {
+	public maze5_result(File f) throws IOException {
 		// Set up the encoding table FOR DST
 		encodingTable = new HashMap<Character, String>();
 		encodingTable.put('O', "000");
@@ -303,12 +303,12 @@ public class maze4_result implements Environment {
 			// }
 		}
 
-		if (x == 6 && y == 1) {
+		if (x == 7 && y == 1) {
 			reward.setPareto(new Qvector(-1, 1));
 			// resetPosition();
 		}
 
-		if (x == 1 && y == 6) {
+		if (x == 1 && y == 7) {
 			reward.setPareto(new Qvector(-1, 10));
 			// resetPosition();
 		}
@@ -418,7 +418,7 @@ public class maze4_result implements Environment {
 					// System.out.println(String.format("calculate Pareto sum at
 					// every %d times", resultInterval));
 					for (int trailIndex = 0; trailIndex < totalCalcTimes; trailIndex++) {
-						maze4_result maze = new maze4_result("data/maze4.txt");
+						maze5_result maze = new maze5_result("data/maze5.txt");
 						NXCS nxcs = new NXCS(maze, params);
 
 						Trace trace = new Trace(maze, params);
@@ -472,7 +472,6 @@ public class maze4_result implements Environment {
 								// TODO:WEIGHT TRACE for trail
 								ArrayList<ArrayList<ArrayList<StepSnapshot>>> trailStats = new ArrayList<ArrayList<ArrayList<StepSnapshot>>>();
 								for (Point weight : traceWeights) {
-									
 									trailStats.add(maze.traceWeight(finalStateCount, maze, trace, nxcs, params, weight));
 								}
 								stepLogger.addRawStats(trailStats);
@@ -496,14 +495,14 @@ public class maze4_result implements Environment {
 						try {
 							logger.writeLogAndCSVFiles(
 									String.format("log/csv/%s/%s/%s - %s - Trial %d - <TRIAL_NUM>-HyperVolumn.csv",
-											"MOXCS", "MAZE4", actionSelectionMethod, distCalcMethod, trailIndex),
+											"MOXCS", "MAZE5", actionSelectionMethod, distCalcMethod, trailIndex),
 									String.format("log/datadump/%s/%s - %s - Trail %d-<TIMESTEP_NUM> - hypervolumn.log",
 											"MOXCS", actionSelectionMethod, distCalcMethod, trailIndex),
 									"Hyper Volumn");
 							logger.writeChartsAsSinglePlot(
 									String.format("log/charts/%s/%s/%s - %s - Trail %d - <CHART_TITLE>-hypervolumn.png",
-											"MOXCS", "MAZE4", actionSelectionMethod, distCalcMethod, trailIndex),
-									String.format("%s on %s", "MOXCS", "MAZE4"), "performance", "Hyper Volumn");
+											"MOXCS", "MAZE5", actionSelectionMethod, distCalcMethod, trailIndex),
+									String.format("%s on %s", "MOXCS", "MAZE5"), "performance", "Hyper Volumn");
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
@@ -512,24 +511,24 @@ public class maze4_result implements Environment {
 						System.out.println(String.format("trace result log**************", finalStateCount));
 						stepLogger.calculateMatchPercentageForWeights(maze.getOpenLocationExpectPaths());
 						stepLogger.writeLogAndCSVFiles(
-								String.format("log/csv/%s/%s/%s - %s - Trial %d - <TRIAL_NUM>.csv", "MOXCS", "MAZE4",
+								String.format("log/csv/%s/%s/%s - %s - Trial %d - <TRIAL_NUM>.csv", "MOXCS", "MAZE5",
 										actionSelectionMethod, distCalcMethod, trailIndex),
 								String.format("log/datadump/%s/%s - %s - Trail %d-<TIMESTEP_NUM>.log", "MOXCS",
 										actionSelectionMethod, distCalcMethod, trailIndex),
 								traceWeights);
 						stepLogger.writeChartsAsSinglePlot(
 								String.format("log/charts/%s/%s/%s - %s - Trail %d - <CHART_TITLE>.png", "MOXCS",
-										"MAZE4", actionSelectionMethod, distCalcMethod, trailIndex),
-								String.format("%s on %s", "MOXCS", "MAZE4"));
+										"MAZE5", actionSelectionMethod, distCalcMethod, trailIndex),
+								String.format("%s on %s", "MOXCS", "MAZE5"));
 
 						stepTrailsLogger.addBatchStats(stepLogger.getCurrentTrailStats());
 					} // endof z loop
 
 					// painting for the avg result for 30 trials
 					stepTrailsLogger.writeAverageChartsAsSinglePlot(
-							String.format("log/charts/%s/%s/%s - %s - Trail %s - <CHART_TITLE>.png", "MOXCS", "MAZE4",
+							String.format("log/charts/%s/%s/%s - %s - Trail %s - <CHART_TITLE>.png", "MOXCS", "MAZE5",
 									actionSelectionMethod, distCalcMethod, "x"),
-							String.format("%s on %s", "MOXCS", "MAZE4"));
+							String.format("%s on %s", "MOXCS", "MAZE5"));
 					System.out.println(String.format("####$##### Result of: Action:%s - Distance:%s - Trail#: %s ",
 							actionSelectionMethod, distCalcMethod, "x"));
 					writer.write(String.format("####$##### Result of: Action:%s - Distance:%s - Trail#: %s ",
@@ -549,7 +548,7 @@ public class maze4_result implements Environment {
 		} // endof try
 	}
 
-	private ArrayList<ArrayList<StepSnapshot>> traceOpenLocations(int timeStamp, maze4_result maze, Trace trace,
+	private ArrayList<ArrayList<StepSnapshot>> traceOpenLocations(int timeStamp, maze5_result maze, Trace trace,
 			NXCS nxcs, NXCSParameters params) {
 		// stats variables
 		ArrayList<ArrayList<StepSnapshot>> locStats = new ArrayList<ArrayList<StepSnapshot>>();
@@ -565,7 +564,7 @@ public class maze4_result implements Environment {
 		return locStats;
 	}
 
-	private ArrayList<ArrayList<StepSnapshot>> traceWeight(int timeStamp, maze4_result maze, Trace trace, NXCS nxcs,
+	private ArrayList<ArrayList<StepSnapshot>> traceWeight(int timeStamp, maze5_result maze, Trace trace, NXCS nxcs,
 			NXCSParameters params, Point weights) {
 		// stats variables
 		ArrayList<ArrayList<StepSnapshot>> locStats = new ArrayList<ArrayList<StepSnapshot>>();
@@ -579,8 +578,9 @@ public class maze4_result implements Environment {
 		}
 		return locStats;
 	}
+	
 
-	private void printOpenLocationClassifiers(int timestamp, maze4_result maze, NXCS nxcs) {
+	private void printOpenLocationClassifiers(int timestamp, maze5_result maze, NXCS nxcs) {
 		for (Point p : maze.openLocations) {
 			// System.out.println(String.format("%d\t location:%d,%d",
 			// timestamp, (int) p.getX(), (int) p.getY()));
