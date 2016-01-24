@@ -133,7 +133,7 @@ public class NXCS {
 	 */
 	// public int classify(int timestamp2, Point curr, String state, Point prev,
 	// String prevState) {
-	public int classify(String currState, String prevState) {
+	public int classify(String currState, Point weight) {
 		if (currState.length() != params.stateLength)
 			throw new IllegalArgumentException(
 					String.format("The given state (%s) is not of the correct length", currState));
@@ -146,18 +146,23 @@ public class NXCS {
 			if (A.size() == 0) {
 				continue;
 			}
-			Collections.sort(A, new Comparator<Classifier>() {
+			double avgExp = A.stream().mapToDouble(x -> x.experience).average().getAsDouble();
+			List<Classifier> B = A.stream().filter(b -> b.experience >= avgExp).collect(Collectors.toList());
+			if (B.size() == 0) {
+				continue;
+			}
+			Collections.sort(B, new Comparator<Classifier>() {
 				@Override
 				public int compare(Classifier o1, Classifier o2) {
-					return o1.fitness == o2.fitness ? 0 : (o1.fitness > o2.fitness ? 1 : -1);
+					return o1.error == o2.error ? 0 : (o1.error > o2.error ? 1 : -1);
 				}
 			});
-			sortset.add(A.get(A.size() - 1));
+			sortset.add(B.get(0));
 		}
 
 		// delete the cls which next state=prestate
 //		sortset.removeIf(x -> x.conditionNext.equals(prevState));
-		double[] predictions = generatePredictions(sortset);
+		double[] predictions = generateWeightsPredictions(sortset, weight);
 		return selectAction(predictions);
 	}
 
