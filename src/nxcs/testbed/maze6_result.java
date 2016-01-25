@@ -342,7 +342,7 @@ public class maze6_result implements Environment {
 
 		writer = new BufferedWriter(new FileWriter(logFile));
 		int totalCalcTimes = 30;
-		int finalStateUpperBound = 3001;
+		int finalStateUpperBound = 5001;
 
 		act.add(0);
 		act.add(1);
@@ -384,7 +384,7 @@ public class maze6_result implements Environment {
 			int finalStateCount = 1;
 			boolean logged = false;
 			HyperVolumn hypervolumn = new HyperVolumn();
-			int resultInterval = 1;
+			int resultInterval = 5;
 			int numOfChartBars = 20;
 			ArrayList<Point> traceWeights = new ArrayList<Point>();
 			traceWeights.add(new Point(10, 90));
@@ -443,7 +443,7 @@ public class maze6_result implements Environment {
 						while (finalStateCount < finalStateUpperBound) {
 							nxcs.runIteration(finalStateCount, maze.getState());
 
-							if (finalStateCount % resultInterval == 0 && !logged) {
+							if (((finalStateCount % resultInterval == 0)||(finalStateCount<100)) && !logged) {
 								double hyperSum = 0;
 
 								for (Point p : maze.openLocations) {
@@ -501,14 +501,14 @@ public class maze6_result implements Environment {
 						crossTrialStats.logTrial(logger.getStatsList());
 
 						try {
-							logger.writeLogAndCSVFiles(
-									String.format(
-											"log/maze6/csv/%s/%s/%s - %s - Trial %d - <TRIAL_NUM>-HyperVolumn.csv",
-											"MOXCS", "MAZE6", actionSelectionMethod, distCalcMethod, trailIndex),
-									String.format(
-											"log/maze6/datadump/%s/%s - %s - Trail %d-<TIMESTEP_NUM> - hypervolumn.log",
-											"MOXCS", actionSelectionMethod, distCalcMethod, trailIndex),
-									"Hyper Volumn");
+//							logger.writeLogAndCSVFiles(
+//									String.format(
+//											"log/maze6/csv/%s/%s/%s - %s - Trial %d - <TRIAL_NUM>-HyperVolumn.csv",
+//											"MOXCS", "MAZE6", actionSelectionMethod, distCalcMethod, trailIndex),
+//									String.format(
+//											"log/maze6/datadump/%s/%s - %s - Trail %d-<TIMESTEP_NUM> - hypervolumn.log",
+//											"MOXCS", actionSelectionMethod, distCalcMethod, trailIndex),
+//									"Hyper Volumn");
 							logger.writeChartsAsSinglePlot(
 									String.format(
 											"log/maze6/charts/%s/%s/%s - %s - Trail %d - <CHART_TITLE>-hypervolumn.png",
