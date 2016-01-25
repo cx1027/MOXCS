@@ -341,7 +341,8 @@ public class maze6_result implements Environment {
 		File logFile = new File(timeLog);
 
 		writer = new BufferedWriter(new FileWriter(logFile));
-		int totalCalcTimes = 3;
+		int totalCalcTimes = 30;
+		int finalStateUpperBound = 3001;
 
 		act.add(0);
 		act.add(1);
@@ -380,7 +381,6 @@ public class maze6_result implements Environment {
 			params.doActionSetSubsumption = false;
 			params.doGASubsumption = false;
 
-			int finalStateUpperBound = 31;
 			int finalStateCount = 1;
 			boolean logged = false;
 			HyperVolumn hypervolumn = new HyperVolumn();
