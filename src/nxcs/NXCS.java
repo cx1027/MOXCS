@@ -247,6 +247,9 @@ public class NXCS {
 					// select best action????????
 					action = selectAction(hyperP);
 				}
+				if (params.actionSelection.equals("random")) {
+					action = XienceMath.randomInt(params.numActions);
+				}
 			} else {
 				action = XienceMath.randomInt(params.numActions);
 			}
@@ -893,9 +896,9 @@ public class NXCS {
 	 * 
 	 * }
 	 */
-	// å¦‚æžœpredictionä¸�æ”¹å�˜ï¼Œè¿™ä¸ªå‡½æ•°æ˜¯è®¡ç®—Q'+R'å¾—åˆ°V'
-	// ç„¶å�ŽP=r+valueFunctionEstimation
-	// è€ƒè™‘valueFunctionEstimationå’Œpredictioné‡Œé�¢PAçš„å…³ç³»
+	// 氓娄鈥毭ε九損rediction盲赂锟矫︹�澛姑ワ拷藴茂录艗猫驴鈩⒚ぢ嘎モ�÷矫︹�⒙懊λ溌∶�擰'+R'氓戮鈥斆ニ喡癡'
+	// 莽鈥灺睹ワ拷沤P=r+valueFunctionEstimation
+	// 猫鈧捗ㄢ劉鈥榲alueFunctionEstimation氓鈥櫯抪rediction茅鈥∨捗╋拷垄PA莽拧鈥灻モ�β趁陈�
 	private double valueFunctionEstimation(List<Classifier> setM) {
 		double[] PA = generatePredictions(setM);
 		double ret = 0;
