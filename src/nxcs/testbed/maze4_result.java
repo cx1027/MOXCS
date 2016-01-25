@@ -341,7 +341,7 @@ public class maze4_result implements Environment {
 		File logFile = new File(timeLog);
 
 		writer = new BufferedWriter(new FileWriter(logFile));
-		int totalCalcTimes = 30;
+		int totalCalcTimes = 2;
 
 		act.add(0);
 		act.add(1);
@@ -380,7 +380,7 @@ public class maze4_result implements Environment {
 			params.doActionSetSubsumption = false;
 			params.doGASubsumption = false;
 
-			int finalStateUpperBound = 2001;
+			int finalStateUpperBound = 21;
 			int finalStateCount = 1;
 			boolean logged = false;
 			HyperVolumn hypervolumn = new HyperVolumn();
@@ -411,7 +411,6 @@ public class maze4_result implements Environment {
 						params.disCalc = new JDistanceCalculator();
 					}
 
-					StatsLogger logger = new StatsLogger(chartXInterval, 0);
 
 					StepStatsLogger stepTrailsLogger = new StepStatsLogger(chartXInterval, 0);
 
@@ -432,6 +431,7 @@ public class maze4_result implements Environment {
 						// clear stats
 						stats.clear();
 
+						StatsLogger logger = new StatsLogger(chartXInterval, 0);
 						StepStatsLogger stepLogger = new StepStatsLogger(chartXInterval, 0);
 
 						System.out.println(
@@ -528,7 +528,13 @@ public class maze4_result implements Environment {
 						stepTrailsLogger.addBatchStats(stepLogger.getCurrentTrailStats());
 					} // endof z loop
 
-					// painting for the avg result for 30 trials
+					// crossTrialStats for the avg result for 30 trials
+					crossTrialStats.writeLogAndCSVFiles(
+							String.format("log/maze4/csv/%s/%s/%s - %s - Trial %s - <TRIAL_NUM>-HyperVolumn.csv",
+									"MOXCS", "MAZE4", actionSelectionMethod, distCalcMethod, "x"),
+							String.format("log/maze4/datadump/%s/%s - %s - Trail %s-<TIMESTEP_NUM> - hypervolumn.log",
+									"MOXCS", actionSelectionMethod, distCalcMethod, "x"),
+							"Hyper Volumn");
 					crossTrialStats.writeChartsAsSinglePlot(
 							String.format("log/maze4/charts/%s/%s/%s - %s - Trail %s - HyperVolumn - <CHART_TITLE>.png", "MOXCS", "MAZE4",
 									actionSelectionMethod, distCalcMethod, "x"),

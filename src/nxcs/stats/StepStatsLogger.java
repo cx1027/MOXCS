@@ -171,7 +171,7 @@ public class StepStatsLogger {
 	}
 
 	public void writeLogAndCSVFiles(String csvFile, String logFile, ArrayList<Point> weights) throws IOException {
-		File csv = new File(csvFile.replaceAll("<TRIAL_NUM>", "Average"));
+		File csv = new File(csvFile.replaceAll("<TRIAL_NUM>", "Average-MatchRate"));
 		csv.getParentFile().mkdirs();
 		FileWriter dataWriter = new FileWriter(csv);
 
