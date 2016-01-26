@@ -99,7 +99,7 @@ public class StepStatsLogger {
 				resultFlat.size() * 1.0 / expectFlat.size());
 	}
 
-	private ArrayList<StepSnapshot> flatNestedArrayList(ArrayList<ArrayList<StepSnapshot>> data) {
+	public ArrayList<StepSnapshot> flatNestedArrayList(ArrayList<ArrayList<StepSnapshot>> data) {
 		ArrayList<StepSnapshot> ret = new ArrayList<StepSnapshot>();
 		for (ArrayList<StepSnapshot> a : data) {
 			ret.addAll(a);
@@ -206,7 +206,7 @@ public class StepStatsLogger {
 				try {
 					ArrayList<StepSnapshot> flat = flatNestedArrayList(this.multiSnapshots.get(j).get(i));
 					for (StepSnapshot s : flat) {
-						dataWriter.append(String.format("%d-%d,", weights.get(j).x, weights.get(j).y) + s.toCSV());
+						dataWriter.append(String.format("'%d-%d,", weights.get(j).x, weights.get(j).y) + s.toCSV());
 					}
 				} catch (Exception ex) {
 					System.out.println(ex.getMessage());

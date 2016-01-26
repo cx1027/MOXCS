@@ -4,14 +4,13 @@ import java.awt.Point;
 import java.util.ArrayList;
 import java.util.List;
 
-import nxcs.Qvector;
-
 public class StepSnapshot {
 	private int timestamp;
 	private Point openState;
 	private Point finalState;
 	private int steps;
 	private List<Point> path;
+	private double hyperVolumn;
 
 	public int getTimestamp() {
 		return timestamp;
@@ -73,6 +72,17 @@ public class StepSnapshot {
 		this(0, openState, finalState, steps, null);
 	}
 
+	public StepSnapshot(int timestamp, Point openState, Point finalState, double hyperVol) {
+		this.timestamp = timestamp;
+		this.openState = openState;
+		this.finalState = finalState;
+		this.hyperVolumn = hyperVol;
+	}
+
+	public StepSnapshot(Point openState, Point finalState, double hyperVol) {
+		this(0, openState, finalState, hyperVol);
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder build = new StringBuilder();
@@ -109,6 +119,20 @@ public class StepSnapshot {
 
 		return build.toString();
 	}
+	
+	public String toCSVHV() {
+		StringBuilder build = new StringBuilder();
+		build.append(this.timestamp);
+		build.append(", ");
+		build.append(String.format("(%d-%d)", (int) this.openState.getX(), (int) this.openState.getY()));
+		build.append(", ");
+		build.append(String.format("(%d-%d)", (int) this.finalState.getX(), (int) this.finalState.getY()));
+		build.append(", ");
+		build.append(this.hyperVolumn);
+		build.append("\n");
+
+		return build.toString();
+	}
 
 	@Override
 	public boolean equals(Object obj) {
@@ -121,5 +145,25 @@ public class StepSnapshot {
 			return true;
 		else
 			return false;
+	}
+	
+	public boolean equalsStates(Object obj) {
+		if (!(obj instanceof StepSnapshot))
+			return false;
+		if (obj == this)
+			return true;
+		StepSnapshot q = (StepSnapshot) obj;
+		if (this.openState.equals(q.openState) && this.finalState.equals(q.finalState))
+			return true;
+		else
+			return false;
+	}
+
+	public double getHyperVolumn() {
+		return hyperVolumn;
+	}
+
+	public void setHyperVolumn(double hyperVolumn) {
+		this.hyperVolumn = hyperVolumn;
 	}
 }
