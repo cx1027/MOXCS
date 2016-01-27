@@ -343,7 +343,7 @@ public class maze5_result implements Environment {
 
 		writer = new BufferedWriter(new FileWriter(logFile));
 		int totalCalcTimes = 1;
-		int finalStateUpperBound = 101;
+		int finalStateUpperBound = 5001;
 
 		act.add(0);
 		act.add(1);
@@ -391,7 +391,7 @@ public class maze5_result implements Environment {
 			boolean logged = false;
 			HyperVolumn hypervolumn = new HyperVolumn();
 			PathHyperVolumnCalculator phv = new PathHyperVolumnCalculator(hypervolumn, new addVectorNList());
-			int resultInterval = 1;
+			int resultInterval = 5;
 			int numOfChartBars = 20;
 			ArrayList<Point> traceWeights = new ArrayList<Point>();
 			traceWeights.add(new Point(10, 90));
@@ -450,7 +450,7 @@ public class maze5_result implements Environment {
 						while (finalStateCount < finalStateUpperBound) {
 							nxcs.runIteration(finalStateCount, maze.getState());
 
-							if (finalStateCount % resultInterval == 0 && !logged) {
+							if (((finalStateCount < 100) || (finalStateCount % resultInterval == 0)) && !logged) {
 								// PRINT CLASSIFIERS
 								maze.printOpenLocationClassifiers(finalStateCount, maze, nxcs);
 
@@ -466,17 +466,19 @@ public class maze5_result implements Environment {
 								// TODO:WEIGHT TRACE for trail
 								ArrayList<ArrayList<ArrayList<StepSnapshot>>> trailStats = new ArrayList<ArrayList<ArrayList<StepSnapshot>>>();
 								double hyperSum = 0;
+								ArrayList<StepSnapshot> hpStats = new ArrayList<StepSnapshot>();
 								for (Point weight : traceWeights) {
 									ArrayList<ArrayList<StepSnapshot>> stats = maze.traceWeight(finalStateCount, maze,
 											trace, nxcs, params, weight);
 									trailStats.add(stats);
-									hyperSum += phv.calculateHyperVolumnForWeight(stepLogger.flatNestedArrayList(stats),
-											rewards);
+									hpStats.addAll(stepLogger.flatNestedArrayList(stats));
+
 								}
-								
+								hyperSum = phv.calculateHyperVolumnForWeights(hpStats, rewards);
+
 								// hypervolumn of this interval
 								System.out.println("finalStateCount:" + finalStateCount + " Hyper:" + hyperSum);
-								
+
 								stats.add(new Snapshot(finalStateCount, nxcs.getPopulation(), 0, 0, hyperSum));
 
 								stepLogger.addRawStats(trailStats);
