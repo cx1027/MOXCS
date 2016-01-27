@@ -15,7 +15,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import com.rits.cloning.Cloner;
@@ -26,12 +25,11 @@ import nxcs.Environment;
 import nxcs.HyperVolumn;
 import nxcs.NXCS;
 import nxcs.NXCSParameters;
-import nxcs.PathStep;
 import nxcs.Qvector;
-import nxcs.Result;
 import nxcs.Reward;
 import nxcs.Trace;
 import nxcs.XienceMath;
+import nxcs.addVectorNList;
 import nxcs.distance.*;
 import nxcs.stats.*;
 
@@ -349,9 +347,12 @@ public class maze6_result implements Environment {
 		act.add(2);
 		act.add(3);
 
-		try {
+		HashMap<Point, Qvector> rewards = new HashMap<Point, Qvector>();
+		rewards.put(new Point(1, 7), new Qvector(-1, 10));
+		rewards.put(new Point(7, 1), new Qvector(-1, 1));
+		rewards.put(new Point(-1, -1), new Qvector(-1, 0));
 
-			// maze.resetToSamePosition(new Point(5, 1));
+		try {
 
 			// distance and exploration setting
 			String[] discCalcMethods = { "MIN", "MAX", "CORE", "J" };
@@ -359,7 +360,6 @@ public class maze6_result implements Environment {
 			String[] actionSelectionMethods = { "maxN", "maxH", "random" };
 			// String[] actionSelectionMethods = { "maxH" };
 
-			// TODO:for different combination, LOOP for trials!!!!!!!!!!!!!!!!!!
 
 			NXCSParameters params = new NXCSParameters();
 			// Another set of parameters Woods1, Woods101
@@ -384,6 +384,7 @@ public class maze6_result implements Environment {
 			int finalStateCount = 1;
 			boolean logged = false;
 			HyperVolumn hypervolumn = new HyperVolumn();
+			PathHyperVolumnCalculator phv = new PathHyperVolumnCalculator(hypervolumn, new addVectorNList());
 			int resultInterval = 5;
 			int numOfChartBars = 20;
 			ArrayList<Point> traceWeights = new ArrayList<Point>();
@@ -443,23 +444,7 @@ public class maze6_result implements Environment {
 						while (finalStateCount < finalStateUpperBound) {
 							nxcs.runIteration(finalStateCount, maze.getState());
 
-							if (((finalStateCount % resultInterval == 0)||(finalStateCount<100)) && !logged) {
-								double hyperSum = 0;
-
-								for (Point p : maze.openLocations) {
-									// calcue hyper for current state , return
-									// to a
-									// double[]
-									double[] hyperP = nxcs.calHyper(maze.getStringForState(p.x, p.y));
-									for (int i = 0; i < hyperP.length; i++) {
-										hyperSum += hyperP[i];
-									}
-								}
-
-								// hypervolumn of this interval
-								System.out.println("finalStateCount:" + finalStateCount + " Hyper:" + hyperSum);
-								stats.add(new Snapshot(finalStateCount, nxcs.getPopulation(), 0, 0, hyperSum));
-
+							if (((finalStateCount < 100) || (finalStateCount % resultInterval == 0)) && !logged) {
 								// PRINT CLASSIFIERS
 								maze.printOpenLocationClassifiers(finalStateCount, maze, nxcs);
 
@@ -474,11 +459,22 @@ public class maze6_result implements Environment {
 
 								// TODO:WEIGHT TRACE for trail
 								ArrayList<ArrayList<ArrayList<StepSnapshot>>> trailStats = new ArrayList<ArrayList<ArrayList<StepSnapshot>>>();
+								double hyperSum = 0;
+								ArrayList<StepSnapshot> hpStats = new ArrayList<StepSnapshot>();
 								for (Point weight : traceWeights) {
+									ArrayList<ArrayList<StepSnapshot>> stats = maze.traceWeight(finalStateCount, maze,
+											trace, nxcs, params, weight);
+									trailStats.add(stats);
+									hpStats.addAll(stepLogger.flatNestedArrayList(stats));
 
-									trailStats
-											.add(maze.traceWeight(finalStateCount, maze, trace, nxcs, params, weight));
 								}
+								hyperSum = phv.calculateHyperVolumnForWeights(hpStats, rewards);
+
+								// hypervolumn of this interval
+								System.out.println("finalStateCount:" + finalStateCount + " Hyper:" + hyperSum);
+
+								stats.add(new Snapshot(finalStateCount, nxcs.getPopulation(), 0, 0, hyperSum));
+
 								stepLogger.addRawStats(trailStats);
 								logged = true;
 							}
