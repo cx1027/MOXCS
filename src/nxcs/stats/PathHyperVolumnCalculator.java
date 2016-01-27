@@ -88,23 +88,23 @@ public class PathHyperVolumnCalculator {
 			for (StepSnapshot p : op) {
 				qList.add(this.getPathPayload(p, reward));
 			}
-			System.out.println("---------Qvector list -------------");
-			for (Qvector q : qList) {
-				System.out.println(q.toString());
-			}
+//			System.out.println("---------Qvector list -------------");
+//			for (Qvector q : qList) {
+//				System.out.println(q.toString());
+//			}
 			hyper += hv.calcHyperVolumn(qList, new Qvector(-100, -100));
 		}
-		System.out.println("-------------------------Path list ----------------------");
-		for (StepSnapshot s : stats) {
-			System.out.println(s.toString());
-		}
-		System.out.println("-------------------------Valid Path list ----------------------");
-		for (StepSnapshot s : validStats) {
-			System.out.println(s.toString());
-		}
-
-		System.out.println("-------------------------Qvector list Result:----------------------" + hyper);
-		System.out.println("");
+//		System.out.println("-------------------------Path list ----------------------");
+//		for (StepSnapshot s : stats) {
+//			System.out.println(s.toString());
+//		}
+//		System.out.println("-------------------------Valid Path list ----------------------");
+//		for (StepSnapshot s : validStats) {
+//			System.out.println(s.toString());
+//		}
+//
+//		System.out.println("-------------------------Qvector list Result:----------------------" + hyper);
+//		System.out.println("");
 		return hyper;
 	}
 }
