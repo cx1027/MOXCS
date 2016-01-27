@@ -15,7 +15,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import com.rits.cloning.Cloner;
@@ -26,9 +25,7 @@ import nxcs.Environment;
 import nxcs.HyperVolumn;
 import nxcs.NXCS;
 import nxcs.NXCSParameters;
-import nxcs.PathStep;
 import nxcs.Qvector;
-import nxcs.Result;
 import nxcs.Reward;
 import nxcs.Trace;
 import nxcs.XienceMath;
@@ -342,7 +339,7 @@ public class maze5_result implements Environment {
 		File logFile = new File(timeLog);
 
 		writer = new BufferedWriter(new FileWriter(logFile));
-		int totalCalcTimes = 1;
+		int totalTrailTimes = 30;
 		int finalStateUpperBound = 5001;
 
 		act.add(0);
@@ -360,9 +357,9 @@ public class maze5_result implements Environment {
 			// maze.resetToSamePosition(new Point(5, 1));
 
 			// distance and exploration setting
-			String[] discCalcMethods = { "MIN", "MAX", "CORE", "J" };
+			String[] discCalcMethods = {  "J", "MIN", "MAX", "CORE"};
 
-			String[] actionSelectionMethods = { "maxN", "maxH", "random" };
+			String[] actionSelectionMethods = { "maxN", "maxH"};//, "random" };
 			// String[] actionSelectionMethods = { "maxH" };
 
 			// TODO:for different combination, LOOP for trials!!!!!!!!!!!!!!!!!!
@@ -370,7 +367,7 @@ public class maze5_result implements Environment {
 			NXCSParameters params = new NXCSParameters();
 			// Another set of parameters Woods1, Woods101
 
-			params.N = 1600;
+			params.N = 6000;
 			params.stateLength = 24;
 			params.numActions = 4;
 			params.rho0 = 1000;
@@ -391,7 +388,7 @@ public class maze5_result implements Environment {
 			boolean logged = false;
 			HyperVolumn hypervolumn = new HyperVolumn();
 			PathHyperVolumnCalculator phv = new PathHyperVolumnCalculator(hypervolumn, new addVectorNList());
-			int resultInterval = 5;
+			int resultInterval = 10;
 			int numOfChartBars = 20;
 			ArrayList<Point> traceWeights = new ArrayList<Point>();
 			traceWeights.add(new Point(10, 90));
@@ -426,7 +423,7 @@ public class maze5_result implements Environment {
 
 					// System.out.println(String.format("calculate Pareto sum at
 					// every %d times", resultInterval));
-					for (int trailIndex = 0; trailIndex < totalCalcTimes; trailIndex++) {
+					for (int trailIndex = 0; trailIndex < totalTrailTimes; trailIndex++) {
 						maze5_result maze = new maze5_result("data/maze5.txt");
 						NXCS nxcs = new NXCS(maze, params);
 
@@ -503,18 +500,18 @@ public class maze5_result implements Environment {
 						crossTrialStats.logTrial(logger.getStatsList());
 
 						try {
-							logger.writeLogAndCSVFiles(
-									String.format(
-											"log/maze5/csv/%s/%s/%s - %s - Trial %d - <TRIAL_NUM>-HyperVolumn.csv",
-											"MOXCS", "MAZE5", actionSelectionMethod, distCalcMethod, trailIndex),
-									String.format(
-											"log/maze5/datadump/%s/%s - %s - Trail %d-<TIMESTEP_NUM> - hypervolumn.log",
-											"MOXCS", actionSelectionMethod, distCalcMethod, trailIndex),
-									"Hyper Volumn");
+//							logger.writeLogAndCSVFiles(
+//									String.format(
+//											"log/maze5/csv/%s/%s/%s - %s - Trial %d - <TRIAL_NUM>-HyperVolumn - N%d.csv",
+//											"MOXCS", "MAZE5", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
+//									String.format(
+//											"log/maze5/datadump/%s/%s - %s - Trail %d-<TIMESTEP_NUM> - hypervolumn - N%d.log",
+//											"MOXCS", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
+//									"Hyper Volumn");
 							logger.writeChartsAsSinglePlot(
 									String.format(
-											"log/maze5/charts/%s/%s/%s - %s - Trail %d - <CHART_TITLE>-hypervolumn.png",
-											"MOXCS", "MAZE5", actionSelectionMethod, distCalcMethod, trailIndex),
+											"log/maze5/charts/%s/%s/%s - %s - Trail %d - <CHART_TITLE>-hypervolumn - N%d.png",
+											"MOXCS", "MAZE5", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
 									String.format("%s on %s", "MOXCS", "MAZE5"), "performance", "Hyper Volumn");
 						} catch (IOException e) {
 							e.printStackTrace();
@@ -524,14 +521,14 @@ public class maze5_result implements Environment {
 						System.out.println(String.format("trace result log**************", finalStateCount));
 						stepLogger.calculateMatchPercentageForWeights(maze.getOpenLocationExpectPaths());
 						stepLogger.writeLogAndCSVFiles(
-								String.format("log/maze5/csv/%s/%s/%s - %s - Trial %d - <TRIAL_NUM>.csv", "MOXCS",
-										"MAZE5", actionSelectionMethod, distCalcMethod, trailIndex),
-								String.format("log/maze5/datadump/%s/%s - %s - Trail %d-<TIMESTEP_NUM>.log", "MOXCS",
-										actionSelectionMethod, distCalcMethod, trailIndex),
+								String.format("log/maze5/csv/%s/%s/%s - %s - Trial %d - <TRIAL_NUM> - N%d.csv", "MOXCS",
+										"MAZE5", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
+								String.format("log/maze5/datadump/%s/%s - %s - Trail %d-<TIMESTEP_NUM> - N%d.log", "MOXCS",
+										actionSelectionMethod, distCalcMethod, trailIndex, params.N),
 								traceWeights);
 						stepLogger.writeChartsAsSinglePlot(
-								String.format("log/maze5/charts/%s/%s/%s - %s - Trail %d - <CHART_TITLE>.png", "MOXCS",
-										"MAZE5", actionSelectionMethod, distCalcMethod, trailIndex),
+								String.format("log/maze5/charts/%s/%s/%s - %s - Trail %d - <CHART_TITLE> - N%d.png", "MOXCS",
+										"MAZE5", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
 								String.format("%s on %s", "MOXCS", "MAZE5"));
 
 						stepTrailsLogger.addBatchStats(stepLogger.getCurrentTrailStats());
@@ -539,23 +536,23 @@ public class maze5_result implements Environment {
 
 					// crossTrialStats for the avg result for 30 trials
 					crossTrialStats.writeLogAndCSVFiles(
-							String.format("log/maze5/csv/%s/%s/%s - %s - Trial %s - <TRIAL_NUM>-HyperVolumn.csv",
-									"MOXCS", "maze5", actionSelectionMethod, distCalcMethod, "x"),
-							String.format("log/maze5/datadump/%s/%s - %s - Trail %s-<TIMESTEP_NUM> - hypervolumn.log",
-									"MOXCS", actionSelectionMethod, distCalcMethod, "x"),
+							String.format("log/maze5/csv/%s/%s/%s - %s - Trial %s - <TRIAL_NUM>-HyperVolumn - N%d.csv",
+									"MOXCS", "maze5", actionSelectionMethod, distCalcMethod, "x", params.N),
+							String.format("log/maze5/datadump/%s/%s - %s - Trail %s-<TIMESTEP_NUM> - hypervolumn - N%d.log",
+									"MOXCS", actionSelectionMethod, distCalcMethod, "x", params.N),
 							"Hyper Volumn");
 					crossTrialStats.writeChartsAsSinglePlot(
-							String.format("log/maze5/charts/%s/%s/%s - %s - Trail %s - HyperVolumn - <CHART_TITLE>.png",
-									"MOXCS", "maze5", actionSelectionMethod, distCalcMethod, "x"),
+							String.format("log/maze5/charts/%s/%s/%s - %s - Trail %s - HyperVolumn - <CHART_TITLE> - N%d.png",
+									"MOXCS", "maze5", actionSelectionMethod, distCalcMethod, "x", params.N),
 							String.format("%s on %s", "MOXCS", "maze5"), "performance", "Hyper Volumn");
 					stepTrailsLogger.writeAverageChartsAsSinglePlot(
-							String.format("log/maze5/charts/%s/%s/%s - %s - Trail %s - <CHART_TITLE>.png", "MOXCS",
-									"MAZE5", actionSelectionMethod, distCalcMethod, "x"),
+							String.format("log/maze5/charts/%s/%s/%s - %s - Trail %s - <CHART_TITLE> - N%d.png", "MOXCS",
+									"MAZE5", actionSelectionMethod, distCalcMethod, "x", params.N),
 							String.format("%s on %s", "MOXCS", "MAZE5"));
-					System.out.println(String.format("####$##### Result of: Action:%s - Distance:%s - Trail#: %s ",
-							actionSelectionMethod, distCalcMethod, "x"));
-					writer.write(String.format("####$##### Result of: Action:%s - Distance:%s - Trail#: %s ",
-							actionSelectionMethod, distCalcMethod, "x"));
+					System.out.println(String.format("####$##### Result of: Action:%s - Distance:%s - Trail#: %s - N%d",
+							actionSelectionMethod, distCalcMethod, "x", params.N));
+					writer.write(String.format("####$##### Result of: Action:%s - Distance:%s - Trail#: %s - N%d",
+							actionSelectionMethod, distCalcMethod, "x", params.N));
 					writer.newLine();
 				} // calculator loop
 			} // action selection loop
