@@ -1,10 +1,12 @@
-package nxcs;
+package nxcs.distance;
 import static java.util.stream.Collectors.*;
 
 import static java.util.stream.Collectors.toCollection;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import nxcs.Qvector;
 
 public class MinDistanceV {
 	private ArrayList<Qvector> newV;

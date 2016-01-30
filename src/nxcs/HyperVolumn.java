@@ -7,7 +7,7 @@ import java.util.Comparator;
 import nxcs.Qvector;
 
 public class HyperVolumn {
-	
+
 	public double calcHyperVolumn(ArrayList<Qvector> vList, Qvector refer) {
 		double hper = 0;
 		vList = sortQvector(vList);// sort by the first value by ascending
@@ -23,8 +23,31 @@ public class HyperVolumn {
 		return hper;
 	}
 
+	public double calcHyperVolumn(Qvector q, Qvector refer) {
+		double hper = 0;
+		hper += Math.abs(q.getQvalue().get(0) - refer.getQvalue().get(0))
+				* Math.abs(q.getQvalue().get(1) - refer.getQvalue().get(1));
+		return hper;
+	}
+
+	public Qvector normailze(Qvector q) {
+		double sumSqrt = Math
+				.sqrt(q.getQvalue().get(0) * q.getQvalue().get(0) + q.getQvalue().get(1) * q.getQvalue().get(1));
+
+		return new Qvector(q.getQvalue().get(0) / sumSqrt, q.getQvalue().get(1) / sumSqrt);
+	}
+	
+	public ArrayList<Qvector> normailze(ArrayList<Qvector> list) {
+		ArrayList<Qvector> ret = new ArrayList<Qvector>();
+		for(Qvector q: list){
+			ret.add(this.normailze(q));
+		}
+		return ret;
+	}
+	
 	public ArrayList<Qvector> sortQvector(ArrayList<Qvector> vList) {
-		// Collections.sort(vList, (a, b) -> (int) ((a.getQvalue().get(0) - b.getQvalue().get(0)) * 10024));
+		// Collections.sort(vList, (a, b) -> (int) ((a.getQvalue().get(0) -
+		// b.getQvalue().get(0)) * 10024));
 
 		Collections.sort(vList, new Comparator<Qvector>() {
 			@Override

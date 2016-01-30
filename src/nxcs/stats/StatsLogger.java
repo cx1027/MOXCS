@@ -41,11 +41,14 @@ public class StatsLogger {
 	}
 
 	public void logTrial(List<List<Snapshot>> stats) {
-		List<Snapshot> data = new ArrayList<Snapshot>();
-		for (List<Snapshot> s : stats) {
-			data.add(Snapshot.average(s));
+		for (int j = 0; j < stats.size(); j++) {
+			for (int i = 0; i < stats.get(0).size(); i++) {
+				if (snapshots.size() <= j) {
+					snapshots.add(new ArrayList<Snapshot>());
+				}
+				snapshots.get(j).add(stats.get(j).get(i));
+			}
 		}
-		snapshots.add(data);
 	}
 
 	public List<List<Snapshot>> getStatsList() {
@@ -111,6 +114,12 @@ public class StatsLogger {
 		series[3] = new XYSeries("Average Macro Classifier Proportion");
 		series[4] = new XYSeries(performanceMeasure);
 		series[5] = new XYSeries(hyperMeasure);
+		series[0].add(0, 0);
+		series[1].add(0, 0);
+		series[2].add(0, 0);
+		series[3].add(0, 0);
+		series[4].add(0, 0);
+		series[5].add(0, 0);
 		for (Snapshot s : averages) {
 			series[0].add(s.getTimestamp(), s.getPopulationSize());
 			series[1].add(s.getTimestamp(), s.getAverageFitness());
@@ -124,6 +133,10 @@ public class StatsLogger {
 				"Macro Classifier Proportion", performanceMeasure, hyperMeasure };
 
 		for (int i = 0; i < labels.length; i++) {
+			// only plot Hyper Volumn
+			if (!labels[i].equals(hyperMeasure))
+				continue;
+
 			XYSeriesCollection data = new XYSeriesCollection();
 			data.addSeries(series[i]);
 			JFreeChart chart = ChartFactory.createScatterPlot(labels[i] + "\n" + problem, "Number of Learning Problems",
@@ -150,11 +163,11 @@ public class StatsLogger {
 			NumberAxis domain = (NumberAxis) plot.getDomainAxis();
 			domain.setTickUnit(new NumberTickUnit(this.xInterval));
 
-			 chart.removeLegend();
+			chart.removeLegend();
 
 			File finalChartFile = new File(chartFile.replaceAll("<CHART_TITLE>", labels[i]));
 			finalChartFile.getParentFile().mkdirs();
-			ImageIO.write(chart.createBufferedImage(640, 480), "png", finalChartFile);
+			ImageIO.write(chart.createBufferedImage(1024, 768), "png", finalChartFile);
 			System.out.printf("Wrote %s with size %d%n", finalChartFile.getAbsolutePath(), finalChartFile.length());
 		}
 	}
@@ -173,6 +186,12 @@ public class StatsLogger {
 		}
 
 		for (int i = 0; i < snapshots.size(); i++) {
+			series[i][0].add(0, 0);
+			series[i][1].add(0, 0);
+			series[i][2].add(0, 0);
+			series[i][3].add(0, 0);
+			series[i][4].add(0, 0);
+			series[i][5].add(0, 0);
 			for (Snapshot s : snapshots.get(i)) {
 				series[i][0].add(s.getTimestamp(), s.getPopulationSize());
 				series[i][1].add(s.getTimestamp(), s.getAverageFitness());

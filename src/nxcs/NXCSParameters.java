@@ -2,6 +2,8 @@ package nxcs;
 
 import java.util.ArrayList;
 
+import nxcs.distance.IDistanceCalculator;
+
 /**
  * The parameters of an NXCS system. These are much the same as the ones used in
  * XCS and thus the comments regarding their purpose are mostly taken from
@@ -146,6 +148,8 @@ public class NXCSParameters {
 
 //	public ArrayList<MinDistanceV> intVset = new ArrayList<MinDistanceV>();
 	
+	public IDistanceCalculator disCalc;
+	public String actionSelection;
 	
 	public NXCSParameters(){
 		this.intR = new Qvector(0,0);

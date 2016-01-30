@@ -3,6 +3,8 @@ package nxcs;
 import static java.util.stream.Collectors.toCollection;
 
 import java.awt.Point;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,6 +21,7 @@ import java.util.stream.IntStream;
 
 import com.rits.cloning.Cloner;
 
+import nxcs.distance.DistanceCalculator;
 import nxcs.testbed.DST;
 import nxcs.testbed.EMaze;
 
@@ -78,6 +81,8 @@ public class NXCS {
 
 	private static boolean flagga;
 	private static int i = 1;
+	public int finalState = 0;
+	public String mazeName = "";
 
 	/**
 	 * Constructs an NXCS instance, operating on the given environment with the
@@ -120,17 +125,19 @@ public class NXCS {
 
 	/**
 	 * Classifies the given state using the current knowledge of the system
-	 * @param curr 
-	 * @param timestamp2 
+	 * 
+	 * @param curr
+	 * @param timestamp2
 	 * 
 	 * @param currState
 	 *            The state to classify
-	 * @param prev 
-	 * @param prevState 
+	 * @param prev
+	 * @param prevState
 	 * @return The class the system classifies the given state into
 	 */
-//	public int classify(int timestamp2, Point curr, String state, Point prev, String prevState) {
-	public int classify( String currState, String prevState) {
+	// public int classify(int timestamp2, Point curr, String state, Point prev,
+	// String prevState) {
+	public int classify1(String currState, String prevState) {
 		if (currState.length() != params.stateLength)
 			throw new IllegalArgumentException(
 					String.format("The given state (%s) is not of the correct length", currState));
@@ -146,182 +153,190 @@ public class NXCS {
 					return o1.fitness == o2.fitness ? 0 : (o1.fitness > o2.fitness ? 1 : -1);
 				}
 			});
-			sortset.add(A.get(A.size()-1));
+			sortset.add(A.get(A.size() - 1));
 		}
-        
+
 		// delete the cls which next state=prestate
 		sortset.removeIf(x -> x.conditionNext.equals(prevState));
 		double[] predictions = generatePredictions(sortset);
 		return selectAction(predictions);
 	}
 
-	// public void runIteration(int i) {
-	// String state = env.getState();
-	// // System.out.println("current state " + env.getState());
-	// int action;
-	// if (env.isEndOfProblem(state)) {
-	// action = XienceMath.randomInt(params.numActions);
-	//// List<Classifier> setA = updateSet(previousState, state, previousAction,
-	// previousReward);
-	//// System.out.println("lalallalllallallal");
-	//// runGA(setA, state);
-	//
-	// } else {
-	// List<Classifier> matchSet = generateMatchSet(state);
-	// double[] predictions = generatePredictions(matchSet);
-	// action = selectAction(predictions);
-	// }
-	//
-	//
-	//
-	// if (previousState != null && !env.isEndOfProblem(state)) {
-	// //update Colin's code, even eop, it still need to update [A]
-	// //if (previousState != null && !env.isEndOfProblem(state)) {
-	// List<Classifier> setA = updateSet(previousState, state, previousAction,
-	// previousReward);
-	// runGA(setA, state);
-	// }
-	//
-	// // TODO:getReward to vector
-	// previousReward = env.getReward(state, action);
-	// System.out.println("action: " + action + " reward: " + previousReward);
-	// previousAction = action;
-	// previousState = state;
-	// timestamp = timestamp + 1;
-	// }
+	public int classify(String currState, Point weight) {
+		if (currState.length() != params.stateLength)
+			throw new IllegalArgumentException(
+					String.format("The given state (%s) is not of the correct length", currState));
+		List<Classifier> matchSet = population.stream().filter(c -> stateMatches(c.condition, currState))
+				.collect(Collectors.toList());
+		List<Classifier> sortset = new ArrayList<Classifier>();
+		for (int action = 0; action < params.numActions; action++) {
+			final int act = action;
+			List<Classifier> A = matchSet.stream().filter(b -> b.action == act).collect(Collectors.toList());
+			if (A.size() == 0) {
+				continue;
+			}
+			double avgExp = A.stream().mapToDouble(x -> x.experience).average().getAsDouble();
+			List<Classifier> B = A.stream().filter(b -> b.experience >= avgExp).collect(Collectors.toList());
+			if (B.size() == 0) {
+				continue;
+			}
+			if (B.size() > 1)
+				Collections.sort(B, new Comparator<Classifier>() {
+					@Override
+					public int compare(Classifier o1, Classifier o2) {
+						return o1.error == o2.error ? 0 : (o1.error > o2.error ? 1 : -1);
+					}
+				});
+			sortset.add(B.get(0));
+		}
+
+		// delete the cls which next state=prestate
+		// sortset.removeIf(x -> x.conditionNext.equals(prevState));
+		if (sortset.size() != 0) {
+			double[] predictions = generateWeightsPredictions(sortset, weight);
+			return selectAction(predictions);
+		} else {
+			return XienceMath.randomInt(params.numActions);
+		}
+
+	}
+
+	public double[] calHyper(String state) {
+		HyperVolumn hypervolumn = new HyperVolumn();
+		double[] hyper = { 0, 0, 0, 0 };
+		List<Classifier> C = getMatchSet(state);
+
+		for (int action = 0; action < params.numActions; action++) {
+			final int act = action;
+			List<Classifier> A = C.stream().filter(b -> b.action == act).collect(Collectors.toList());
+
+			Collections.sort(A, new Comparator<Classifier>() {
+				@Override
+				public int compare(Classifier o1, Classifier o2) {
+					return o1.fitness == o2.fitness ? 0 : (o1.fitness > o2.fitness ? 1 : -1);
+				}
+			});
+			if (A.size() == 0) {
+				hyper[act] = 0;
+			} else {
+				double hyperP = hypervolumn.calcHyperVolumn(A.get(A.size() - 1).getV(), new Qvector(-10, -10));
+				hyper[act] = hyperP;
+			}
+			// System.out.println(hyperP);
+		}
+		return hyper;
+	}
 
 	public void runIteration(int finalStateCount, String previousState) {
 		String prestate = env.getState();
 		// System.out.println("privious state is above" + env.getState());
 
-		int action;
+		int action = -1;
 		if (previousState != null) {
 			List<Classifier> matchSet = generateMatchSet(previousState);
-			double[] predictions = generatePredictions(matchSet);
-			if (XienceMath.randomInt(params.numActions) <= -1) {
-				action = selectAction(predictions);
+
+			if (XienceMath.randomInt(params.numActions) <= 1) {
+				if (params.actionSelection.equals("maxN")) {
+					double[] predictions = generatePredictions(matchSet);
+					action = selectAction(predictions);
+				}
+				if (params.actionSelection.equals("maxH")) {
+					double[] hyperP = calHyper(previousState);
+					action = selectAction(hyperP);
+				}
+				if (params.actionSelection.equals("random")) {
+					action = XienceMath.randomInt(params.numActions);
+				}
 			} else {
 				action = XienceMath.randomInt(params.numActions);
 			}
 		} else {
 			action = XienceMath.randomInt(params.numActions);
 		}
-	
-//	public void runIteration(int finalStateCount, String previousState, String distance, String explore) {
-//		String prestate = env.getState();
-//		// System.out.println("privious state is above" + env.getState());
-//
-//		int action;
-//		if (previousState != null) {
-//			List<Classifier> matchSet = generateMatchSet(previousState);
-//			double[] predictions = generatePredictions(matchSet);
-//			
-//			
-//			if (XienceMath.randomInt(params.numActions) <= -1) {
-//				if(explore=="largenumber"){
-//				action = selectAction(predictions);}
-//				else{
-//					action = selectAction(calculateHyper());
-//				}
-//			} else {
-//				action = XienceMath.randomInt(params.numActions);
-//			}
-//		} else {
-//			action = XienceMath.randomInt(params.numActions);
-//		}
 
-		// int action;
-		// if(previousState!=null){
-		// List<Classifier> matchSet = generateMatchSet(previousState);
-		// double[] predictions = generatePredictions(matchSet);
-		// action = selectAction(predictions);
-		// }else{
-		// action = XienceMath.randomInt(params.numActions);
+		// if (i == 1) {
+		// action = 2;
 		// }
-
-		if (i == 1) {
-			action = 2;
-		}
-		if (i == 2) {
-			action = 2;
-
-		}
-		if (i == 3) {
-			action = 2;
-
-		}
-		if (i == 4) {
-			action = 3;
-
-		}
-		if (i == 5) {
-			action = 3;
-
-		}
-		if (i == 6) {
-			action = 3;
-
-		}
-		if (i == 7) {
-			action = 3;
-
-		}
-		if (i == 8) {
-			action = 3;
-
-		}
-		if (i == 9) {
-			action = 1;
-
-		}
-		if (i == 10) {
-			action = 3;
-
-		}
-		if (i == 11) {
-			action = 3;
-
-		}
-		if (i == 12) {
-			action = 3;
-
-		}
-		if (i == 13) {
-			action = 3;
-
-		}
-		if (i == 14) {
-			action = 3;
-
-		}
-		if (i == 15) {
-			action = 1;
-
-		}
-		if (i == 16) {
-			action = 3;
-		}
-		if (i == 17) {
-			action = 3;
-		}
-		if (i == 18) {
-			action = 3;
-		}
-		if (i == 19) {
-			action = 3;
-		}
-		if (i == 20) {
-			action = 3;
-		}
-		if (i == 21) {
-			action = 1;
-		}
-		if (i == 22) {
-			action = 3;
-		}
-		if (i == 23) {
-			action = 1;
-		}
+		// if (i == 2) {
+		// action = 2;
+		//
+		// }
+		// if (i == 3) {
+		// action = 2;
+		//
+		// }
+		// if (i == 4) {
+		// action = 3;
+		//
+		// }
+		// if (i == 5) {
+		// action = 3;
+		//
+		// }
+		// if (i == 6) {
+		// action = 3;
+		//
+		// }
+		// if (i == 7) {
+		// action = 3;
+		//
+		// }
+		// if (i == 8) {
+		// action = 3;
+		//
+		// }
+		// if (i == 9) {
+		// action = 1;
+		//
+		// }
+		// if (i == 10) {
+		// action = 3;
+		//
+		// }
+		// if (i == 11) {
+		// action = 3;
+		//
+		// }
+		// if (i == 12) {
+		// action = 3;
+		//
+		// }
+		// if (i == 13) {
+		// action = 3;
+		//
+		// }
+		// if (i == 14) {
+		// action = 3;
+		//
+		// }
+		// if (i == 15) {
+		// action = 1;
+		//
+		// }
+		// if (i == 16) {
+		// action = 3;
+		// }
+		// if (i == 17) {
+		// action = 3;
+		// }
+		// if (i == 18) {
+		// action = 3;
+		// }
+		// if (i == 19) {
+		// action = 3;
+		// }
+		// if (i == 20) {
+		// action = 3;
+		// }
+		// if (i == 21) {
+		// action = 1;
+		// }
+		// if (i == 22) {
+		// action = 3;
+		// }
+		// if (i == 23) {
+		// action = 1;
+		// }
 		// if (i == 23) {
 		// action = 2;
 		// }
@@ -489,22 +504,22 @@ public class NXCS {
 		timestamp = timestamp + 1;
 		i++;
 	}
-//	public double[] calculateHyper(){
-//	//TODO: hypervolum at this state
-//	double[] hyper = [0,0,0,0];
-//	for(int i=0;i<4;i++){
-//		List<Classifier> A = C.stream().filter(b -> b.action == i)
-//				.collect(Collectors.toList());
-//		Collections.sort(A, new Comparator<Classifier>() {
-//			@Override
-//			public int compare(Classifier o1, Classifier o2) {
-//				return o1.fitness == o2.fitness ? 0 : (o1.fitness > o2.fitness ? 1 : -1);
-//			}
-//		});
-//		hyper[i] = hypervolumn.calcHyperVolumn(A.get(A.size() - 1).getV(),
-//				new Qvector(-10, -10));
-//	}
-//}
+	// public double[] calculateHyper(){
+	// //TODO: hypervolum at this state
+	// double[] hyper = [0,0,0,0];
+	// for(int i=0;i<4;i++){
+	// List<Classifier> A = C.stream().filter(b -> b.action == i)
+	// .collect(Collectors.toList());
+	// Collections.sort(A, new Comparator<Classifier>() {
+	// @Override
+	// public int compare(Classifier o1, Classifier o2) {
+	// return o1.fitness == o2.fitness ? 0 : (o1.fitness > o2.fitness ? 1 : -1);
+	// }
+	// });
+	// hyper[i] = hypervolumn.calcHyperVolumn(A.get(A.size() - 1).getV(),
+	// new Qvector(-10, -10));
+	// }
+	// }
 
 	/**
 	 * Generates a set of classifiers that match the given state. Looks first
@@ -701,7 +716,14 @@ public class NXCS {
 			List<Classifier> setAA = setM.stream().filter(c -> c.action == actIndex).collect(Collectors.toList());
 			if (setAA.size() > 0) {
 				try {
-					Collections.sort(setAA, (a, b) -> (int) ((a.fitness - b.fitness) * 10024));
+					// Collections.sort(setAA, (a, b) -> (int) ((a.fitness -
+					// b.fitness) * 10024));
+					Collections.sort(setAA, new Comparator<Classifier>() {
+						@Override
+						public int compare(Classifier o1, Classifier o2) {
+							return o1.fitness == o2.fitness ? 0 : (o1.fitness > o2.fitness ? 1 : -1);
+						}
+					});
 				} catch (Exception e) {
 					System.out.println(String.format("sorrrrrrrrrrrt"));
 				}
@@ -772,6 +794,30 @@ public class NXCS {
 		return PA;
 	}
 
+	public double[] generateWeightsPredictions(List<Classifier> setM, Point weights) {
+		assert(setM != null && setM.size() >= params.thetaMNA) : "Invalid match set";
+		double[] PA = new double[params.numActions];
+		int bestAction = 0;
+
+		List<ActionPareto> NDV = new ArrayList<ActionPareto>();
+		NDV = getParetoVVector(setM);
+
+		int m = NDV.get(0).getAction();
+
+		double maxScalar = NDV.get(0).getPareto().get(0) * weights.getX()
+				+ NDV.get(0).getPareto().get(1) * weights.getY();
+
+		for (ActionPareto act : NDV) {
+			if (act.getPareto().get(0) * weights.getX() + act.getPareto().get(1) * weights.getY() > maxScalar) {
+				m = act.getAction();
+				maxScalar = act.getPareto().get(0) * weights.getX() + act.getPareto().get(1) * weights.getY();
+			}
+
+		}
+		PA[m] = 1;
+		return PA;
+	}
+
 	/**
 	 * get all the unique V of curState and count for each action
 	 * 
@@ -820,7 +866,7 @@ public class NXCS {
 	 *            The predictions to use to select the action
 	 * @return The action selected
 	 */
-	//TODO:SELECT THE MAX NUMBER ACITON!!!!!!
+	// TODO:SELECT THE MAX NUMBER ACITON!!!!!!
 	private int selectAction(double[] predictions) {
 		return (int) XienceMath.choice(IntStream.range(0, params.numActions).boxed().toArray(), predictions);
 	}
@@ -846,9 +892,6 @@ public class NXCS {
 	 * 
 	 * }
 	 */
-	// 如果prediction不改变，这个函数是计算Q'+R'得到V'
-	// 然后P=r+valueFunctionEstimation
-	// 考虑valueFunctionEstimation和prediction里面PA的关系
 	private double valueFunctionEstimation(List<Classifier> setM) {
 		double[] PA = generatePredictions(setM);
 		double ret = 0;
@@ -982,8 +1025,6 @@ public class NXCS {
 		actionSet.stream().forEach(x -> x.conditionNext = currentState);
 
 		// Update standard parameters
-		minDistance dis = new minDistance();
-
 		for (Classifier clas : actionSet) {
 			clas.experience++;
 			if (clas.experience < 1. / params.beta) {
@@ -1045,7 +1086,7 @@ public class NXCS {
 				// P"+P+ " clas.getV()"+clas.getV()+ "dis:"+dis.getJDistance(P,
 				// clas.getV())+" clas.experience"+clas.experience);
 				// }
-				clas.error = clas.error + (dis.getJDistance(P, clas.getV()) - clas.error) / clas.experience;
+				clas.error = clas.error + (params.disCalc.getDistance(P, clas.getV()) - clas.error) / clas.experience;
 				// System.out.println(
 				// "CLAS P:" + P + "CLAS V:" + clas.getV() + "CLAS DIS:" +
 				// dis.getJDistance(P, clas.getV()));
@@ -1058,9 +1099,9 @@ public class NXCS {
 
 				// clas.setV( addVL.addVectorNList(clas.getQ(), clas.getR());
 				if (env.isEndOfProblem(currentState)) {
-					if (Math.abs(clas.getR().get(0) * 10 % 10) > 0) {
-						System.out.println("clas.R:" + clas.getR());
-					}
+					// if (Math.abs(clas.getR().get(0) * 10 % 10) > 0) {
+					// System.out.println("clas.R:" + clas.getR());
+					// }
 					clas.setV(paretoQ.getPareto(nextQ), P);
 				} else {
 					clas.setQ(paretoQ.getPareto(nextQ));
@@ -1091,7 +1132,7 @@ public class NXCS {
 					// "dis:"+dis.getJDistance(P, clas.getV())+"
 					// params.beta"+params.beta);
 				}
-				clas.error = clas.error + (dis.getJDistance(P, clas.getV()) - clas.error) * params.beta;
+				clas.error = clas.error + (params.disCalc.getDistance(P, clas.getV()) - clas.error) * params.beta;
 				// System.out.println("clas.error after:" + clas.error);
 			}
 		}
@@ -1302,5 +1343,196 @@ public class NXCS {
 
 		child1.condition = child1Build.toString();
 		child2.condition = child2Build.toString();
+	}
+
+	int[] peeks = { 99, 510, 1020, 1500, 3000 };
+	ArrayList<ArrayList<Classifier>> peakList = new ArrayList<ArrayList<Classifier>>();
+	ArrayList<ArrayList<Classifier>> peakBestList = new ArrayList<ArrayList<Classifier>>();
+
+	int i3001 = peeks[peeks.length - 1] + 1;
+	private boolean printed;
+
+	private void peek(List<Classifier> A, Classifier best) {
+		int pokingIdx = -1;
+		if (finalState >= peeks[0]) {
+
+			for (int i = 0; i < peeks.length; i++) {
+				if (finalState == peeks[i]) {
+					pokingIdx = i;
+					break;
+				}
+			}
+			if (pokingIdx > -1) {
+				if (peakList.size() <= pokingIdx) {
+					peakList.add(new ArrayList<Classifier>());
+					peakBestList.add(new ArrayList<Classifier>());
+				}
+				for (Classifier c : A) {
+					if (!peakList.get(pokingIdx).contains(c))
+						peakList.get(pokingIdx).add(c);
+				}
+				if (!peakBestList.get(pokingIdx).contains(best))
+					peakBestList.get(pokingIdx).add(best);
+			}
+		}
+		if (finalState >= i3001 && !printed) {
+			print3000();
+			printBest();
+			printed = true;
+		}
+	}
+
+	private void print3000() {
+		System.out.println("============================begin to find");
+		File csv = new File(
+				String.format("log/" + this.mazeName + "/csv/c%d--to--c%d.csv", peeks[0], peeks[peeks.length - 1]));
+		csv.getParentFile().mkdirs();
+		double p1 = 0;
+		double p2 = 0;
+		try {
+			FileWriter dataWriter = new FileWriter(csv);
+			dataWriter.append("Index,Fnd,Id,Classfier\n");
+
+			File csvbe = new File(String.format("log/" + this.mazeName + "/csv/c%d --vs-- c%d.csv", peeks[0],
+					peeks[peeks.length - 1]));
+			csvbe.getParentFile().mkdirs();
+
+			FileWriter dataWriterbe = new FileWriter(csvbe);
+			dataWriterbe.append("Index,Fnd,Id,Classfier\n");
+
+			ArrayList<Classifier> c1 = null;
+			ArrayList<Classifier> c2 = null;
+			ArrayList<Classifier> cFirst = peakList.get(0);
+			ArrayList<Classifier> cLast = peakList.get(peeks.length - 1);
+			for (int i = 1; i < peeks.length; i++) {
+				c1 = peakList.get(i - 1);
+				c2 = peakList.get(i);
+				p1 = 0;
+				for (Classifier c : c1) {
+					Optional<Classifier> found = c2.stream().filter(x -> x.id == c.id).findFirst();
+					if (found.isPresent()) {
+						System.out.println(peeks[i - 1] + ",Found," + c.id + "," + c);
+						dataWriter.append(peeks[i - 1] + ",Found," + c.id + "," + c);
+						p1++;
+					} else {
+						System.out.println(peeks[i - 1] + ",Not," + c.id + "," + c);
+						dataWriter.append(peeks[i - 1] + ",Not," + c.id + "," + c);
+					}
+				}
+				dataWriter.append("foundInNext" + "," + p1 / c2.size() + "," + p1 + "," + c2.size() + "\n");
+			}
+
+			for (Classifier c : cFirst) {
+				Optional<Classifier> found = cLast.stream().filter(x -> x.id == c.id).findFirst();
+
+				if (found.isPresent()) {
+					System.out.println(peeks[0] + ",Found," + c.id + "," + c);
+					dataWriterbe.append(peeks[0] + ",Found," + c.id + "," + c);
+					p2++;
+				} else {
+					System.out.println(peeks[0] + ",Not," + c.id + "," + c);
+					dataWriterbe.append(peeks[0] + ",Not," + c.id + "," + c);
+				}
+			}
+			dataWriterbe.append("foundInLast" + "," + p2 / c1.size() + "," + p2 + "," + c1.size() + "\n");
+			p2 = 0;
+			for (Classifier c : cLast) {
+				Optional<Classifier> found = cFirst.stream().filter(x -> x.id == c.id).findFirst();
+
+				if (found.isPresent()) {
+					System.out.println(peeks[peeks.length - 1] + ",Found," + c.id + "," + c);
+					dataWriterbe.append(peeks[peeks.length - 1] + ",Found," + c.id + "," + c);
+					p2++;
+				} else {
+					System.out.println(peeks[peeks.length - 1] + ",Not," + c.id + "," + c);
+					dataWriterbe.append(peeks[peeks.length - 1] + ",Not," + c.id + "," + c);
+				}
+			}
+			dataWriterbe.append("foundInFirst" + "," + p2 / c1.size() + "," + p2 + "," + cLast.size() + "\n");
+
+			System.out.println("============================begin to find end");
+			dataWriterbe.close();
+			dataWriter.close();
+
+		} catch (Exception ex) {
+			System.out.println("============================begin to find ERROR!");
+		}
+	}
+
+	private void printBest() {
+		System.out.println("============================begin to find Best");
+		File csv = new File(String.format("log/" + this.mazeName + "/csv/c%d--to--c%d.Best.csv", peeks[0],
+				peeks[peeks.length - 1]));
+		csv.getParentFile().mkdirs();
+		double p1 = 0;
+		double p2 = 0;
+		try {
+			FileWriter dataWriter = new FileWriter(csv);
+			dataWriter.append("Index,Fnd,Id,Classfier\n");
+
+			File csvbe = new File(String.format("log/" + this.mazeName + "/csv/c%d --vs-- c%d.Best.csv", peeks[0],
+					peeks[peeks.length - 1]));
+			csvbe.getParentFile().mkdirs();
+
+			FileWriter dataWriterbe = new FileWriter(csvbe);
+			dataWriterbe.append("Index,Fnd,Id,Classfier\n");
+
+			ArrayList<Classifier> c1 = null;
+			ArrayList<Classifier> c2 = null;
+			ArrayList<Classifier> cFirst = peakBestList.get(0);
+			ArrayList<Classifier> cLast = peakBestList.get(peeks.length - 1);
+			for (int i = 1; i < peeks.length; i++) {
+				c1 = peakBestList.get(i - 1);
+				c2 = peakBestList.get(i);
+				p1 = 0;
+				for (Classifier c : c1) {
+					Optional<Classifier> found = c2.stream().filter(x -> x.id == c.id).findFirst();
+					if (found.isPresent()) {
+						System.out.println(peeks[i - 1] + ",Found," + c.id + "," + c);
+						dataWriter.append(peeks[i - 1] + ",Found," + c.id + "," + c);
+						p1++;
+					} else {
+						System.out.println(peeks[i - 1] + ",Not," + c.id + "," + c);
+						dataWriter.append(peeks[i - 1] + ",Not," + c.id + "," + c);
+					}
+				}
+				dataWriter.append("foundInNext" + "," + p1 / c2.size() + "," + p1 + "," + c2.size() + "\n");
+			}
+
+			for (Classifier c : cFirst) {
+				Optional<Classifier> found = cLast.stream().filter(x -> x.id == c.id).findFirst();
+
+				if (found.isPresent()) {
+					System.out.println(peeks[0] + ",Found," + c.id + "," + c);
+					dataWriterbe.append(peeks[0] + ",Found," + c.id + "," + c);
+					p2++;
+				} else {
+					System.out.println(peeks[0] + ",Not," + c.id + "," + c);
+					dataWriterbe.append(peeks[0] + ",Not," + c.id + "," + c);
+				}
+			}
+			dataWriterbe.append("foundInLast" + "," + p2 / c1.size() + "," + p2 + "," + c1.size() + "\n");
+			p2 = 0;
+			for (Classifier c : cLast) {
+				Optional<Classifier> found = cFirst.stream().filter(x -> x.id == c.id).findFirst();
+
+				if (found.isPresent()) {
+					System.out.println(peeks[peeks.length - 1] + ",Found," + c.id + "," + c);
+					dataWriterbe.append(peeks[peeks.length - 1] + ",Found," + c.id + "," + c);
+					p2++;
+				} else {
+					System.out.println(peeks[peeks.length - 1] + ",Not," + c.id + "," + c);
+					dataWriterbe.append(peeks[peeks.length - 1] + ",Not," + c.id + "," + c);
+				}
+			}
+			dataWriterbe.append("foundInFirst" + "," + p2 / c1.size() + "," + p2 + "," + cLast.size() + "\n");
+
+			System.out.println("============================begin to find end");
+			dataWriterbe.close();
+			dataWriter.close();
+
+		} catch (Exception ex) {
+			System.out.println("============================begin to find ERROR!");
+		}
 	}
 }
