@@ -15,7 +15,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import com.rits.cloning.Cloner;
@@ -26,9 +25,7 @@ import nxcs.Environment;
 import nxcs.HyperVolumn;
 import nxcs.NXCS;
 import nxcs.NXCSParameters;
-import nxcs.PathStep;
 import nxcs.Qvector;
-import nxcs.Result;
 import nxcs.Reward;
 import nxcs.Trace;
 import nxcs.XienceMath;
@@ -41,7 +38,7 @@ import nxcs.stats.*;
  * contain a rectangular array of 'O', 'T' and 'F' characters. A sample is given
  * in Mazes/Woods1.txt
  */
-public class maze4_result implements Environment {
+public class maze5_result implements Environment {
 	/**
 	 * The raw characters in the maze
 	 */
@@ -99,7 +96,7 @@ public class maze4_result implements Environment {
 	 * @throws IOException
 	 *             On standard IO problems
 	 */
-	public maze4_result(String mazeFile) throws IOException {
+	public maze5_result(String mazeFile) throws IOException {
 		this(new File(mazeFile));
 	}
 
@@ -111,7 +108,7 @@ public class maze4_result implements Environment {
 	 * @throws IOException
 	 *             On standard IO problems
 	 */
-	public maze4_result(File f) throws IOException {
+	public maze5_result(File f) throws IOException {
 		// Set up the encoding table FOR DST
 		encodingTable = new HashMap<Character, String>();
 		encodingTable.put('O', "000");
@@ -304,12 +301,12 @@ public class maze4_result implements Environment {
 			// }
 		}
 
-		if (x == 6 && y == 1) {
+		if (x == 7 && y == 1) {
 			reward.setPareto(new Qvector(-1, 1));
 			// resetPosition();
 		}
 
-		if (x == 1 && y == 6) {
+		if (x == 1 && y == 7) {
 			reward.setPareto(new Qvector(-1, 10));
 			// resetPosition();
 		}
@@ -342,8 +339,8 @@ public class maze4_result implements Environment {
 		File logFile = new File(timeLog);
 
 		writer = new BufferedWriter(new FileWriter(logFile));
-		int totalTrailTimes = 1;
-		int finalStateUpperBound = 3201;
+		int totalTrailTimes = 30;
+		int finalStateUpperBound = 3501;
 
 		act.add(0);
 		act.add(1);
@@ -351,8 +348,8 @@ public class maze4_result implements Environment {
 		act.add(3);
 
 		HashMap<Point, Qvector> rewards = new HashMap<Point, Qvector>();
-		rewards.put(new Point(1, 6), new Qvector(-1, 10));
-		rewards.put(new Point(6, 1), new Qvector(-1, 1));
+		rewards.put(new Point(1, 7), new Qvector(-1, 10));
+		rewards.put(new Point(7, 1), new Qvector(-1, 1));
 		rewards.put(new Point(-1, -1), new Qvector(-1, 0));
 
 		try {
@@ -370,7 +367,7 @@ public class maze4_result implements Environment {
 			NXCSParameters params = new NXCSParameters();
 			// Another set of parameters Woods1, Woods101
 
-			params.N = 1600;
+			params.N = 6000;
 			params.stateLength = 24;
 			params.numActions = 4;
 			params.rho0 = 1000;
@@ -391,7 +388,7 @@ public class maze4_result implements Environment {
 			boolean logged = false;
 			HyperVolumn hypervolumn = new HyperVolumn();
 			PathHyperVolumnCalculator phv = new PathHyperVolumnCalculator(hypervolumn, new addVectorNList());
-			int resultInterval = 100;
+			int resultInterval = 30;
 			int numOfChartBars = 20;
 			ArrayList<Point> traceWeights = new ArrayList<Point>();
 			traceWeights.add(new Point(10, 90));
@@ -422,13 +419,12 @@ public class maze4_result implements Environment {
 					}
 
 					StepStatsLogger stepTrailsLogger = new StepStatsLogger(chartXInterval, 0);
-
 					StatsLogger crossTrialStats = new StatsLogger(chartXInterval, 0);
 
 					// System.out.println(String.format("calculate Pareto sum at
 					// every %d times", resultInterval));
 					for (int trailIndex = 0; trailIndex < totalTrailTimes; trailIndex++) {
-						maze4_result maze = new maze4_result("data/maze4.txt");
+						maze5_result maze = new maze5_result("data/maze5.txt");
 						NXCS nxcs = new NXCS(maze, params);
 
 						Trace trace = new Trace(maze, params);
@@ -450,6 +446,7 @@ public class maze4_result implements Environment {
 						// begin
 						while (finalStateCount < finalStateUpperBound) {
 							nxcs.runIteration(finalStateCount, maze.getState());
+							
 							nxcs.finalState = finalStateCount;
 							if (((finalStateCount < 100) || (finalStateCount % resultInterval == 0)) && !logged) {
 								ArrayList<ArrayList<ArrayList<StepSnapshot>>> trailStats = new ArrayList<ArrayList<ArrayList<StepSnapshot>>>();
@@ -473,22 +470,6 @@ public class maze4_result implements Environment {
 
 								// PRINT CLASSIFIERS
 								maze.printOpenLocationClassifiers(finalStateCount, maze, nxcs);
-
-								// ACS TRACE
-								// collect each open laction's result in a
-								// intervel ,
-								// and store it in stepLogger
-								/*************
-								 * stepLogger.add(maze.traceOpenLocations(
-								 * finalStateCount, maze, trace, nxcs, params));
-								 *****/
-
-								// TODO:WEIGHT TRACE for trail
-								//calc Avg is after PrintOpenLocations
-								//ArrayList<ArrayList<ArrayList<StepSnapshot>>> trailStats = new ArrayList<ArrayList<ArrayList<StepSnapshot>>>();
-								//for (Point weight : traceWeights) {
-								//	trailStats.add(maze.traceWeight(finalStateCount, maze, trace, nxcs, params, weight));
-								//}
 								stepLogger.addRawStats(trailStats);
 								logged = true;
 							}
@@ -509,17 +490,21 @@ public class maze4_result implements Environment {
 						logger.logRun(stats);
 
 						crossTrialStats.logTrial(logger.getStatsList());
+
 						try {
-							logger.writeLogAndCSVFiles(
-									String.format("log/csv/%s/%s/%s - %s - Trial %d - <TRIAL_NUM>-HyperVolumn.csv",
-											"MOXCS", "MAZE4", actionSelectionMethod, distCalcMethod, trailIndex),
-									String.format("log/datadump/%s/%s - %s - Trail %d-<TIMESTEP_NUM> - hypervolumn.log",
-											"MOXCS", actionSelectionMethod, distCalcMethod, trailIndex),
+							logger.writeLogAndCSVFiles(String.format(
+									"log/maze5/csv/%s/%s/%s - %s - Trial %d - <TRIAL_NUM>-HyperVolumn - N%d.csv",
+									"MOXCS", "MAZE5", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
+									String.format(
+											"log/maze5/datadump/%s/%s - %s - Trail %d-<TIMESTEP_NUM> - hypervolumn - N%d.log",
+											"MOXCS", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
 									"Hyper Volumn");
-							logger.writeChartsAsSinglePlot(
-									String.format("log/charts/%s/%s/%s - %s - Trail %d - <CHART_TITLE>-hypervolumn.png",
-											"MOXCS", "MAZE4", actionSelectionMethod, distCalcMethod, trailIndex),
-									String.format("%s on %s", "MOXCS", "MAZE4"), "performance", "Hyper Volumn");
+							logger.writeChartsAsSinglePlot(String.format(
+									"log/maze5/charts/%s/%s/%s - %s - Trail %d - <CHART_TITLE>-hypervolumn - N%d.png",
+									"MOXCS", "MAZE5", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
+									String.format("%s on %s -%s -%s N=%d", "MOXCS", "MAZE5", actionSelectionMethod,
+											distCalcMethod, params.N),
+									"performance", "Hyper Volumn");
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
@@ -528,25 +513,39 @@ public class maze4_result implements Environment {
 						System.out.println(String.format("trace result log**************", finalStateCount));
 						stepLogger.calculateMatchPercentageForWeights(maze.getOpenLocationExpectPaths());
 						stepLogger.writeLogAndCSVFiles(
-								String.format("log/maze4/csv/%s/%s/%s - %s - Trial %d - <TRIAL_NUM> - N%d.csv", "MOXCS",
-										"MAZE4", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
-								String.format("log/maze4/datadump/%s/%s - %s - Trail %d-<TIMESTEP_NUM> - N%d.log",
+								String.format("log/maze5/csv/%s/%s/%s - %s - Trial %d - <TRIAL_NUM> - N%d.csv", "MOXCS",
+										"MAZE5", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
+								String.format("log/maze5/datadump/%s/%s - %s - Trail %d-<TIMESTEP_NUM> - N%d.log",
 										"MOXCS", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
 								traceWeights);
 						stepLogger.writeChartsAsSinglePlot(
-								String.format("log/maze4/charts/%s/%s/%s - %s - Trail %d - <CHART_TITLE> - N%d.png",
-										"MOXCS", "MAZE4", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
-								String.format("%s on %s -%s -%s N=%d", "MOXCS", "MAZE4", actionSelectionMethod,
+								String.format("log/maze5/charts/%s/%s/%s - %s - Trail %d - <CHART_TITLE> - N%d.png",
+										"MOXCS", "MAZE5", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
+								String.format("%s on %s -%s -%s N=%d", "MOXCS", "MAZE5", actionSelectionMethod,
 										distCalcMethod, params.N));
 
 						stepTrailsLogger.addBatchStats(stepLogger.getCurrentTrailStats());
 					} // endof z loop
 
-					// painting for the avg result for 30 trials
+					// crossTrialStats for the avg result for 30 trials
+					crossTrialStats.writeLogAndCSVFiles(
+							String.format("log/maze5/csv/%s/%s/%s - %s - Trial %s - <TRIAL_NUM>-HyperVolumn - N%d.csv",
+									"MOXCS", "maze5", actionSelectionMethod, distCalcMethod, "x", params.N),
+							String.format(
+									"log/maze5/datadump/%s/%s - %s - Trail %s-<TIMESTEP_NUM> - hypervolumn - N%d.log",
+									"MOXCS", actionSelectionMethod, distCalcMethod, "x", params.N),
+							"Hyper Volumn");
+					crossTrialStats.writeChartsAsSinglePlot(
+							String.format(
+									"log/maze5/charts/%s/%s/%s - %s - Trail %s - HyperVolumn - <CHART_TITLE> - N%d.png",
+									"MOXCS", "maze5", actionSelectionMethod, distCalcMethod, "x", params.N),
+							String.format("%s on %s -%s -%s N=%d", "MOXCS", "MAZE5", actionSelectionMethod,
+									distCalcMethod, params.N),
+							"performance", "Hyper Volumn");
 					stepTrailsLogger.writeAverageChartsAsSinglePlot(
-							String.format("log/maze4/charts/%s/%s/%s - %s - Trail %s - <CHART_TITLE> - N%d.png",
-									"MOXCS", "MAZE4", actionSelectionMethod, distCalcMethod, "x", params.N),
-							String.format("%s on %s -%s -%s N=%d", "MOXCS", "MAZE4", actionSelectionMethod,
+							String.format("log/maze5/charts/%s/%s/%s - %s - Trail %s - <CHART_TITLE> - N%d.png",
+									"MOXCS", "MAZE5", actionSelectionMethod, distCalcMethod, "x", params.N),
+							String.format("%s on %s -%s -%s N=%d", "MOXCS", "MAZE5", actionSelectionMethod,
 									distCalcMethod, params.N));
 					System.out.println(String.format("####$##### Result of: Action:%s - Distance:%s - Trail#: %s - N%d",
 							actionSelectionMethod, distCalcMethod, "x", params.N));
@@ -567,7 +566,7 @@ public class maze4_result implements Environment {
 		} // endof try
 	}
 
-	private ArrayList<ArrayList<StepSnapshot>> traceOpenLocations(int timeStamp, maze4_result maze, Trace trace,
+	private ArrayList<ArrayList<StepSnapshot>> traceOpenLocations(int timeStamp, maze5_result maze, Trace trace,
 			NXCS nxcs, NXCSParameters params) {
 		// stats variables
 		ArrayList<ArrayList<StepSnapshot>> locStats = new ArrayList<ArrayList<StepSnapshot>>();
@@ -583,7 +582,7 @@ public class maze4_result implements Environment {
 		return locStats;
 	}
 
-	private ArrayList<ArrayList<StepSnapshot>> traceWeight(int timeStamp, maze4_result maze, Trace trace, NXCS nxcs,
+	private ArrayList<ArrayList<StepSnapshot>> traceWeight(int timeStamp, maze5_result maze, Trace trace, NXCS nxcs,
 			NXCSParameters params, Point weights) {
 		// stats variables
 		ArrayList<ArrayList<StepSnapshot>> locStats = new ArrayList<ArrayList<StepSnapshot>>();
@@ -598,7 +597,7 @@ public class maze4_result implements Environment {
 		return locStats;
 	}
 
-	private void printOpenLocationClassifiers(int timestamp, maze4_result maze, NXCS nxcs) {
+	private void printOpenLocationClassifiers(int timestamp, maze5_result maze, NXCS nxcs) {
 		for (Point p : maze.openLocations) {
 			// System.out.println(String.format("%d\t location:%d,%d",
 			// timestamp, (int) p.getX(), (int) p.getY()));
@@ -619,88 +618,128 @@ public class maze4_result implements Environment {
 	public ArrayList<ArrayList<StepSnapshot>> getOpenLocationExpectPaths() {
 		ArrayList<ArrayList<StepSnapshot>> expect = new ArrayList<ArrayList<StepSnapshot>>();
 		ArrayList<StepSnapshot> e11 = new ArrayList<StepSnapshot>();
-		e11.add(new StepSnapshot(new Point(1, 1), new Point(1, 6), 7));
+		e11.add(new StepSnapshot(new Point(1, 1), new Point(1, 7), 6));
 		expect.add(e11);
 		ArrayList<StepSnapshot> e21 = new ArrayList<StepSnapshot>();
-		e21.add(new StepSnapshot(new Point(2, 1), new Point(1, 6), 6));
+		e21.add(new StepSnapshot(new Point(2, 1), new Point(7, 1), 5));
+		e21.add(new StepSnapshot(new Point(2, 1), new Point(1, 7), 7));
 		expect.add(e21);
+		ArrayList<StepSnapshot> e31 = new ArrayList<StepSnapshot>();
+		e31.add(new StepSnapshot(new Point(3, 1), new Point(1, 7), 8));
+		e31.add(new StepSnapshot(new Point(3, 1), new Point(7, 1), 4));
+		expect.add(e31);
 		ArrayList<StepSnapshot> e41 = new ArrayList<StepSnapshot>();
-		e41.add(new StepSnapshot(new Point(4, 1), new Point(1, 6), 10));
-		e41.add(new StepSnapshot(new Point(4, 1), new Point(6, 1), 2));
+		e41.add(new StepSnapshot(new Point(4, 1), new Point(7, 1), 3));
+		e41.add(new StepSnapshot(new Point(4, 1), new Point(1, 7), 9));
 		expect.add(e41);
 		ArrayList<StepSnapshot> e51 = new ArrayList<StepSnapshot>();
-		e51.add(new StepSnapshot(new Point(5, 1), new Point(6, 1), 1));
-		e51.add(new StepSnapshot(new Point(5, 1), new Point(1, 6), 9));
+		e51.add(new StepSnapshot(new Point(5, 1), new Point(1, 7), 10));
+		e51.add(new StepSnapshot(new Point(5, 1), new Point(7, 1), 2));
 		expect.add(e51);
+		ArrayList<StepSnapshot> e61 = new ArrayList<StepSnapshot>();
+		e61.add(new StepSnapshot(new Point(6, 1), new Point(1, 7), 11));
+		e61.add(new StepSnapshot(new Point(6, 1), new Point(7, 1), 1));
+		expect.add(e61);
+		ArrayList<StepSnapshot> e12 = new ArrayList<StepSnapshot>();
+		e12.add(new StepSnapshot(new Point(1, 2), new Point(1, 7), 5));
+		expect.add(e12);
 		ArrayList<StepSnapshot> e22 = new ArrayList<StepSnapshot>();
-		e22.add(new StepSnapshot(new Point(2, 2), new Point(1, 6), 5));
+		e22.add(new StepSnapshot(new Point(2, 2), new Point(1, 7), 6));
 		expect.add(e22);
-		ArrayList<StepSnapshot> e32 = new ArrayList<StepSnapshot>();
-		e32.add(new StepSnapshot(new Point(3, 2), new Point(1, 6), 6));
-		expect.add(e32);
-		ArrayList<StepSnapshot> e52 = new ArrayList<StepSnapshot>();
-		e52.add(new StepSnapshot(new Point(5, 2), new Point(6, 1), 2));
-		e52.add(new StepSnapshot(new Point(5, 2), new Point(1, 6), 8));
-		expect.add(e52);
-		ArrayList<StepSnapshot> e62 = new ArrayList<StepSnapshot>();
-		e62.add(new StepSnapshot(new Point(6, 2), new Point(6, 1), 1));
-		e62.add(new StepSnapshot(new Point(6, 2), new Point(1, 6), 9));
-		expect.add(e62);
-		ArrayList<StepSnapshot> e23 = new ArrayList<StepSnapshot>();
-		e23.add(new StepSnapshot(new Point(2, 3), new Point(1, 6), 4));
-		expect.add(e23);
+		ArrayList<StepSnapshot> e42 = new ArrayList<StepSnapshot>();
+		e42.add(new StepSnapshot(new Point(4, 2), new Point(7, 1), 4));
+		e42.add(new StepSnapshot(new Point(4, 2), new Point(1, 7), 8));
+		expect.add(e42);
+		ArrayList<StepSnapshot> e72 = new ArrayList<StepSnapshot>();
+		e72.add(new StepSnapshot(new Point(7, 2), new Point(7, 1), 1));
+		e72.add(new StepSnapshot(new Point(7, 2), new Point(1, 7), 11));
+		expect.add(e72);
+		ArrayList<StepSnapshot> e13 = new ArrayList<StepSnapshot>();
+		e13.add(new StepSnapshot(new Point(1, 3), new Point(1, 7), 4));
+		expect.add(e13);
+		ArrayList<StepSnapshot> e33 = new ArrayList<StepSnapshot>();
+		e33.add(new StepSnapshot(new Point(3, 3), new Point(1, 7), 6));
+		expect.add(e33);
 		ArrayList<StepSnapshot> e43 = new ArrayList<StepSnapshot>();
-		e43.add(new StepSnapshot(new Point(4, 3), new Point(6, 1), 4));
-		e43.add(new StepSnapshot(new Point(4, 3), new Point(1, 6), 6));
+		e43.add(new StepSnapshot(new Point(4, 3), new Point(1, 7), 7));
+		e43.add(new StepSnapshot(new Point(4, 3), new Point(7, 1), 5));
 		expect.add(e43);
 		ArrayList<StepSnapshot> e53 = new ArrayList<StepSnapshot>();
-		e53.add(new StepSnapshot(new Point(5, 3), new Point(6, 1), 3));
-		e53.add(new StepSnapshot(new Point(5, 3), new Point(1, 6), 7));
+		e53.add(new StepSnapshot(new Point(5, 3), new Point(1, 7), 8));
+		e53.add(new StepSnapshot(new Point(5, 3), new Point(7, 1), 4));
 		expect.add(e53);
+		ArrayList<StepSnapshot> e63 = new ArrayList<StepSnapshot>();
+		e63.add(new StepSnapshot(new Point(6, 3), new Point(1, 7), 9));
+		e63.add(new StepSnapshot(new Point(6, 3), new Point(7, 1), 3));
+		expect.add(e63);
+		ArrayList<StepSnapshot> e73 = new ArrayList<StepSnapshot>();
+		e73.add(new StepSnapshot(new Point(7, 3), new Point(7, 1), 2));
+		e73.add(new StepSnapshot(new Point(7, 3), new Point(1, 7), 10));
+		expect.add(e73);
 		ArrayList<StepSnapshot> e14 = new ArrayList<StepSnapshot>();
-		e14.add(new StepSnapshot(new Point(1, 4), new Point(1, 6), 4));
+		e14.add(new StepSnapshot(new Point(1, 4), new Point(1, 7), 3));
 		expect.add(e14);
 		ArrayList<StepSnapshot> e24 = new ArrayList<StepSnapshot>();
-		e24.add(new StepSnapshot(new Point(2, 4), new Point(1, 6), 3));
+		e24.add(new StepSnapshot(new Point(2, 4), new Point(1, 7), 4));
 		expect.add(e24);
 		ArrayList<StepSnapshot> e34 = new ArrayList<StepSnapshot>();
-		e34.add(new StepSnapshot(new Point(3, 4), new Point(1, 6), 4));
+		e34.add(new StepSnapshot(new Point(3, 4), new Point(1, 7), 5));
 		expect.add(e34);
-		ArrayList<StepSnapshot> e = new ArrayList<StepSnapshot>();
-		e.add(new StepSnapshot(new Point(4, 4), new Point(1, 6), 5));
-		expect.add(e);
-		ArrayList<StepSnapshot> e54 = new ArrayList<StepSnapshot>();
-		e54.add(new StepSnapshot(new Point(5, 4), new Point(6, 1), 4));
-		e54.add(new StepSnapshot(new Point(5, 4), new Point(1, 6), 6));
-		expect.add(e54);
 		ArrayList<StepSnapshot> e64 = new ArrayList<StepSnapshot>();
-		e64.add(new StepSnapshot(new Point(6, 4), new Point(6, 1), 5));
-		e64.add(new StepSnapshot(new Point(6, 4), new Point(1, 6), 7));
+		e64.add(new StepSnapshot(new Point(6, 4), new Point(1, 7), 10));
+		e64.add(new StepSnapshot(new Point(6, 4), new Point(7, 1), 4));
 		expect.add(e64);
-		ArrayList<StepSnapshot> e25 = new ArrayList<StepSnapshot>();
-		e25.add(new StepSnapshot(new Point(2, 5), new Point(1, 6), 2));
-		expect.add(e25);
-		ArrayList<StepSnapshot> e45 = new ArrayList<StepSnapshot>();
-		e45.add(new StepSnapshot(new Point(4, 5), new Point(1, 6), 4));
-		expect.add(e45);
+		ArrayList<StepSnapshot> e74 = new ArrayList<StepSnapshot>();
+		e74.add(new StepSnapshot(new Point(7, 4), new Point(7, 1), 3));
+		e74.add(new StepSnapshot(new Point(7, 4), new Point(1, 7), 11));
+		expect.add(e74);
+		ArrayList<StepSnapshot> e15 = new ArrayList<StepSnapshot>();
+		e15.add(new StepSnapshot(new Point(1, 5), new Point(1, 7), 2));
+		expect.add(e15);
+		ArrayList<StepSnapshot> e35 = new ArrayList<StepSnapshot>();
+		e35.add(new StepSnapshot(new Point(3, 5), new Point(1, 7), 4));
+		expect.add(e35);
 		ArrayList<StepSnapshot> e55 = new ArrayList<StepSnapshot>();
-		e55.add(new StepSnapshot(new Point(5, 5), new Point(1, 6), 5));
+		e55.add(new StepSnapshot(new Point(5, 5), new Point(1, 7), 12));
+		e55.add(new StepSnapshot(new Point(5, 5), new Point(7, 1), 6));
 		expect.add(e55);
 		ArrayList<StepSnapshot> e65 = new ArrayList<StepSnapshot>();
-		e65.add(new StepSnapshot(new Point(6, 5), new Point(1, 6), 6));
+		e65.add(new StepSnapshot(new Point(6, 5), new Point(1, 7), 11));
+		e65.add(new StepSnapshot(new Point(6, 5), new Point(7, 1), 5));
 		expect.add(e65);
-		ArrayList<StepSnapshot> e26 = new ArrayList<StepSnapshot>();
-		e26.add(new StepSnapshot(new Point(2, 6), new Point(1, 6), 1));
-		expect.add(e26);
+		ArrayList<StepSnapshot> e16 = new ArrayList<StepSnapshot>();
+		e16.add(new StepSnapshot(new Point(1, 6), new Point(1, 7), 1));
+		expect.add(e16);
 		ArrayList<StepSnapshot> e36 = new ArrayList<StepSnapshot>();
-		e36.add(new StepSnapshot(new Point(3, 6), new Point(1, 6), 2));
+		e36.add(new StepSnapshot(new Point(3, 6), new Point(1, 7), 3));
 		expect.add(e36);
 		ArrayList<StepSnapshot> e46 = new ArrayList<StepSnapshot>();
-		e46.add(new StepSnapshot(new Point(4, 6), new Point(1, 6), 3));
+		e46.add(new StepSnapshot(new Point(4, 6), new Point(1, 7), 4));
 		expect.add(e46);
 		ArrayList<StepSnapshot> e66 = new ArrayList<StepSnapshot>();
-		e66.add(new StepSnapshot(new Point(6, 6), new Point(1, 6), 7));
+		e66.add(new StepSnapshot(new Point(6, 6), new Point(1, 7), 12));
+		e66.add(new StepSnapshot(new Point(6, 6), new Point(7, 1), 6));
 		expect.add(e66);
+		ArrayList<StepSnapshot> e76 = new ArrayList<StepSnapshot>();
+		e76.add(new StepSnapshot(new Point(7, 6), new Point(1, 7), 13));
+		e76.add(new StepSnapshot(new Point(7, 6), new Point(7, 1), 7));
+		expect.add(e76);
+		ArrayList<StepSnapshot> e27 = new ArrayList<StepSnapshot>();
+		e27.add(new StepSnapshot(new Point(2, 7), new Point(1, 7), 1));
+		expect.add(e27);
+		ArrayList<StepSnapshot> e37 = new ArrayList<StepSnapshot>();
+		e37.add(new StepSnapshot(new Point(3, 7), new Point(1, 7), 2));
+		expect.add(e37);
+		ArrayList<StepSnapshot> e47 = new ArrayList<StepSnapshot>();
+		e47.add(new StepSnapshot(new Point(4, 7), new Point(1, 7), 3));
+		expect.add(e47);
+		ArrayList<StepSnapshot> e57 = new ArrayList<StepSnapshot>();
+		e57.add(new StepSnapshot(new Point(5, 7), new Point(1, 7), 4));
+		expect.add(e57);
+		ArrayList<StepSnapshot> e77 = new ArrayList<StepSnapshot>();
+		e77.add(new StepSnapshot(new Point(7, 7), new Point(1, 7), 14));
+		e77.add(new StepSnapshot(new Point(7, 7), new Point(7, 1), 8));
+		expect.add(e77);
 
 		return expect;
 	}

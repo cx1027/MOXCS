@@ -129,8 +129,8 @@ public class Snapshot {
 		build.append(performance);
 		build.append(", ");
 		build.append(this.hypervolumn);
-		build.append("\n");
-
+		build.append(System.lineSeparator());
+		
 		return build.toString();
 	}
 

@@ -41,11 +41,14 @@ public class StatsLogger {
 	}
 
 	public void logTrial(List<List<Snapshot>> stats) {
-		List<Snapshot> data = new ArrayList<Snapshot>();
-		for (List<Snapshot> s : stats) {
-			data.add(Snapshot.average(s));
+		for (int j = 0; j < stats.size(); j++) {
+			for (int i = 0; i < stats.get(0).size(); i++) {
+				if (snapshots.size() <= j) {
+					snapshots.add(new ArrayList<Snapshot>());
+				}
+				snapshots.get(j).add(stats.get(j).get(i));
+			}
 		}
-		snapshots.add(data);
 	}
 
 	public List<List<Snapshot>> getStatsList() {
@@ -63,21 +66,21 @@ public class StatsLogger {
 						+ hyperMeasure + "\n");
 
 		for (int i = 0; i < snapshots.size(); i++) {
-			File finalLogFile = new File(logFile.replaceAll("<TIMESTEP_NUM>", "" + i));
-			finalLogFile.getParentFile().mkdirs();
-			FileWriter logWriter = new FileWriter(finalLogFile);
+//			File finalLogFile = new File(logFile.replaceAll("<TIMESTEP_NUM>", "" + i));
+//			finalLogFile.getParentFile().mkdirs();
+//			FileWriter logWriter = new FileWriter(finalLogFile);
 			List<Snapshot> stats = snapshots.get(i);
-			try {
-				for (int j = 0; j < stats.size(); j++) {
-					Snapshot s = stats.get(j);
-					logWriter.append(s.toString());
-					logWriter.append("\n\n");
-				}
+//			try {
+//				for (int j = 0; j < stats.size(); j++) {
+//					Snapshot s = stats.get(j);
+//					logWriter.append(s.toString());
+//					logWriter.append("\n\n");
+//				}
 
 				dataWriter.append(Snapshot.average(stats).toCSV());
-			} finally {
-				logWriter.close();
-			}
+//			} finally {
+//				logWriter.close();
+//			}
 		}
 		dataWriter.close();
 
@@ -130,9 +133,10 @@ public class StatsLogger {
 				"Macro Classifier Proportion", performanceMeasure, hyperMeasure };
 
 		for (int i = 0; i < labels.length; i++) {
-			//only plot Hyper Volumn
-			if(!labels[i].equals(hyperMeasure)) continue;
-			
+			// only plot Hyper Volumn
+			if (!labels[i].equals(hyperMeasure))
+				continue;
+
 			XYSeriesCollection data = new XYSeriesCollection();
 			data.addSeries(series[i]);
 			JFreeChart chart = ChartFactory.createScatterPlot(labels[i] + "\n" + problem, "Number of Learning Problems",
@@ -159,7 +163,7 @@ public class StatsLogger {
 			NumberAxis domain = (NumberAxis) plot.getDomainAxis();
 			domain.setTickUnit(new NumberTickUnit(this.xInterval));
 
-			 chart.removeLegend();
+			chart.removeLegend();
 
 			File finalChartFile = new File(chartFile.replaceAll("<CHART_TITLE>", labels[i]));
 			finalChartFile.getParentFile().mkdirs();
@@ -201,7 +205,7 @@ public class StatsLogger {
 		String[] labels = { "Average Population Size", "Average Classifier Fitness", "Average Classifier Specificity",
 				"Macro Classifier Proportion", performanceMeasure, hyperMeasure };
 
-		for (int i = 0; i < labels.length; i++) {			
+		for (int i = 0; i < labels.length; i++) {
 			XYSeriesCollection data = new XYSeriesCollection();
 			for (int j = 0; j < series.length; j++) {
 				data.addSeries(series[j][i]);

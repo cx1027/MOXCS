@@ -37,7 +37,7 @@ public class ParetoCal {
 				// }
 				boolean flag = true;
 				// ActionPareto candidate = currParentoCandidate.get(i);//
-				ActionPareto candidate = cloner.deepClone(currParentoCandidate.get(i));
+				ActionPareto candidate = currParentoCandidate.get(i);
 				List<ActionPareto> removeList = new ArrayList<ActionPareto>();
 				for (int j = 0; j < archivinglist.size(); j++) {
 					ActionPareto archiving = archivinglist.get(j);
@@ -58,7 +58,7 @@ public class ParetoCal {
 					}
 				}
 				if (flag == true) {
-					archivinglist.add(candidate);
+					archivinglist.add(cloner.deepClone(candidate));
 				}
 			}
 

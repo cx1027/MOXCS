@@ -79,6 +79,8 @@ public class NXCS {
 
 	private static boolean flagga;
 	private static int i = 1;
+	public int finalState = 0;
+	public String mazeName = "";
 
 	/**
 	 * Constructs an NXCS instance, operating on the given environment with the
@@ -160,8 +162,13 @@ public class NXCS {
 
 		// delete the cls which next state=prestate
 //		sortset.removeIf(x -> x.conditionNext.equals(prevState));
-		double[] predictions = generateWeightsPredictions(sortset, weight);
-		return selectAction(predictions);
+		if(sortset.size()>0){
+			double[] predictions = generateWeightsPredictions(sortset, weight);
+			return selectAction(predictions);
+		}
+		else{
+			return XienceMath.randomInt(params.numActions);
+		}
 	}
 
 	/**
@@ -893,9 +900,6 @@ public class NXCS {
 	 * 
 	 * }
 	 */
-	// å¦‚æžœpredictionä¸�æ”¹å�˜ï¼Œè¿™ä¸ªå‡½æ•°æ˜¯è®¡ç®—Q'+R'å¾—åˆ°V'
-	// ç„¶å�ŽP=r+valueFunctionEstimation
-	// è€ƒè™‘valueFunctionEstimationå’Œpredictioné‡Œé�¢PAçš„å…³ç³»
 	private double valueFunctionEstimation(List<Classifier> setM) {
 		double[] PA = generatePredictions(setM);
 		double ret = 0;

@@ -34,7 +34,7 @@ public class ParetoQvector {
 //				}
 				boolean flag = true;
 //				ActionPareto candidate = currParentoCandidate.get(i);//
-				Qvector candidate = cloner.deepClone(currParentoCandidate.get(i));
+				Qvector candidate = currParentoCandidate.get(i);
 
 				for (int j =0; j<archivinglist.size();j++) {
 					Qvector archiving = archivinglist.get(j);
@@ -49,7 +49,7 @@ public class ParetoQvector {
 					}
 				}
 				if (flag == true) {
-					archivinglist.add(candidate);
+					archivinglist.add(cloner.deepClone(candidate));
 				}
 			}
 
