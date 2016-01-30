@@ -344,7 +344,7 @@ public class maze4_result implements Environment {
 
 		writer = new BufferedWriter(new FileWriter(logFile));
 		int totalTrailTimes = 1;
-		int finalStateUpperBound = 3501;
+		int finalStateUpperBound = 3201;
 
 		act.add(0);
 		act.add(1);
@@ -361,9 +361,11 @@ public class maze4_result implements Environment {
 			// maze.resetToSamePosition(new Point(5, 1));
 
 			// distance and exploration setting
-			String[] discCalcMethods = {"CORE"};// "MAX"  };//, "MAX"};//,, "J","CORE"
+			String[] discCalcMethods = { "CORE" };// "MAX" };//, "MAX"};//,,
+													// "J","CORE"
 
-			String[] actionSelectionMethods = { "maxH"};//, "random" }; "maxN"};//,
+			String[] actionSelectionMethods = { "maxH" };// , "random" };
+															// "maxN"};//,
 			// String[] actionSelectionMethods = { "maxH" };
 
 			// TODO:for different combination, LOOP for trials!!!!!!!!!!!!!!!!!!
@@ -371,7 +373,7 @@ public class maze4_result implements Environment {
 			NXCSParameters params = new NXCSParameters();
 			// Another set of parameters Woods1, Woods101
 
-			params.N = 3000;
+			params.N = 1600;
 			params.stateLength = 24;
 			params.numActions = 4;
 			params.rho0 = 1000;
@@ -396,7 +398,7 @@ public class maze4_result implements Environment {
 			int numOfChartBars = 20;
 			ArrayList<Point> traceWeights = new ArrayList<Point>();
 			traceWeights.add(new Point(10, 90));
-//			traceWeights.add(new Point(95, 5));
+			// traceWeights.add(new Point(95, 5));
 
 			// finalStateUpperBound / 20) / 10 * 10 should be 20
 			int chartXInterval = ((finalStateUpperBound / numOfChartBars) > 10)
@@ -451,7 +453,14 @@ public class maze4_result implements Environment {
 						// begin
 						while (finalStateCount < finalStateUpperBound) {
 							nxcs.runIteration(finalStateCount, maze.getState());
-
+							nxcs.finalState = finalStateCount;
+//							maze.printOpenLocationClassifiers(finalStateCount, maze, nxcs, "log/maze4/maze4.classfier."
+//									+ actionSelectionMethod + " - " + distCalcMethod + "-T" + trailIndex + "-");
+							nxcs.filePrefix = "log/maze4/maze4.classfier." + actionSelectionMethod + " - "
+									+ distCalcMethod + "-T" + trailIndex + "-";
+							// String.format("log/maze/csv/%s - %s - T%d
+							// -f%d.log", actionSelectionMethod,
+							// distCalcMethod, trailIndex, finalStateCount);
 							if (((finalStateCount < 100) || (finalStateCount % resultInterval == 0)) && !logged) {
 								ArrayList<ArrayList<ArrayList<StepSnapshot>>> trailStats = new ArrayList<ArrayList<ArrayList<StepSnapshot>>>();
 								double hyperSum = 0;
@@ -466,7 +475,9 @@ public class maze4_result implements Environment {
 								hyperSum = phv.calculateHyperVolumnForWeights(hpStats, rewards);
 
 								// hypervolumn of this interval
-								System.out.println("Method:"+ actionSelectionMethod+" - "+distCalcMethod+" Trail:"+trailIndex+" finalStateCount:" + finalStateCount + " Hyper:" + hyperSum);
+								System.out.println("Method:" + actionSelectionMethod + " - " + distCalcMethod
+										+ " Trail:" + trailIndex + " finalStateCount:" + finalStateCount + " Hyper:"
+										+ hyperSum);
 
 								stats.add(new Snapshot(finalStateCount, nxcs.getPopulation(), 0, 0, hyperSum));
 
@@ -490,23 +501,31 @@ public class maze4_result implements Environment {
 						logger.logRun(stats);
 
 						crossTrialStats.logTrial(logger.getStatsList());
-						try {
-							logger.writeLogAndCSVFiles(
-									String.format(
-											"log/maze4/csv/%s/%s/%s - %s - Trial %d - <TRIAL_NUM>-HyperVolumn - N%d.csv",
-											"MOXCS", "MAZE4", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
-									String.format(
-											"log/maze4/datadump/%s/%s - %s - Trail %d-<TIMESTEP_NUM> - hypervolumn - N%d.log",
-											"MOXCS", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
-									"Hyper Volumn");
-							logger.writeChartsAsSinglePlot(
-									String.format(
-											"log/maze4/charts/%s/%s/%s - %s - Trail %d - <CHART_TITLE>-hypervolumn - N%d.png",
-											"MOXCS", "MAZE4", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
-									String.format("%s on %s -%s -%s N=%d", "MOXCS", "MAZE4", actionSelectionMethod, distCalcMethod, params.N), "performance", "Hyper Volumn");
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
+						// try {
+						// logger.writeLogAndCSVFiles(
+						// String.format(
+						// "log/maze4/csv/%s/%s/%s - %s - Trial %d -
+						// <TRIAL_NUM>-HyperVolumn - N%d.csv",
+						// "MOXCS", "MAZE4", actionSelectionMethod,
+						// distCalcMethod, trailIndex, params.N),
+						// String.format(
+						// "log/maze4/datadump/%s/%s - %s - Trail
+						// %d-<TIMESTEP_NUM> - hypervolumn - N%d.log",
+						// "MOXCS", actionSelectionMethod, distCalcMethod,
+						// trailIndex, params.N),
+						// "Hyper Volumn");
+						// logger.writeChartsAsSinglePlot(
+						// String.format(
+						// "log/maze4/charts/%s/%s/%s - %s - Trail %d -
+						// <CHART_TITLE>-hypervolumn - N%d.png",
+						// "MOXCS", "MAZE4", actionSelectionMethod,
+						// distCalcMethod, trailIndex, params.N),
+						// String.format("%s on %s -%s -%s N=%d", "MOXCS",
+						// "MAZE4", actionSelectionMethod, distCalcMethod,
+						// params.N), "performance", "Hyper Volumn");
+						// } catch (IOException e) {
+						// e.printStackTrace();
+						// }
 
 						// painting for each trial
 						System.out.println(String.format("trace result log**************", finalStateCount));
@@ -514,17 +533,18 @@ public class maze4_result implements Environment {
 						stepLogger.writeLogAndCSVFiles(
 								String.format("log/maze4/csv/%s/%s/%s - %s - Trial %d - <TRIAL_NUM> - N%d.csv", "MOXCS",
 										"MAZE4", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
-								String.format("log/maze4/datadump/%s/%s - %s - Trail %d-<TIMESTEP_NUM> - N%d.log", "MOXCS",
-										actionSelectionMethod, distCalcMethod, trailIndex, params.N),
+								String.format("log/maze4/datadump/%s/%s - %s - Trail %d-<TIMESTEP_NUM> - N%d.log",
+										"MOXCS", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
 								traceWeights);
 						stepLogger.writeChartsAsSinglePlot(
-								String.format("log/maze4/charts/%s/%s/%s - %s - Trail %d - <CHART_TITLE> - N%d.png", "MOXCS",
-										"MAZE4", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
-								String.format("%s on %s -%s -%s N=%d", "MOXCS", "MAZE4", actionSelectionMethod, distCalcMethod, params.N));
+								String.format("log/maze4/charts/%s/%s/%s - %s - Trail %d - <CHART_TITLE> - N%d.png",
+										"MOXCS", "MAZE4", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
+								String.format("%s on %s -%s -%s N=%d", "MOXCS", "MAZE4", actionSelectionMethod,
+										distCalcMethod, params.N));
 
-				stepTrailsLogger.addBatchStats(stepLogger.getCurrentTrailStats());
+						stepTrailsLogger.addBatchStats(stepLogger.getCurrentTrailStats());
 
-			} // endof z loop
+					} // endof z loop
 
 					// crossTrialStats for the avg result for 30 trials
 					crossTrialStats.writeLogAndCSVFiles(
@@ -534,14 +554,18 @@ public class maze4_result implements Environment {
 									"MOXCS", actionSelectionMethod, distCalcMethod, "x", params.N),
 							"Hyper Volumn");
 					crossTrialStats.writeChartsAsSinglePlot(
-							String.format("log/maze4/charts/%s/%s/%s - %s - Trail %s - HyperVolumn - <CHART_TITLE> - N%d.png",
+							String.format(
+									"log/maze4/charts/%s/%s/%s - %s - Trail %s - HyperVolumn - <CHART_TITLE> - N%d.png",
 									"MOXCS", "MAZE4", actionSelectionMethod, distCalcMethod, "x", params.N),
-							String.format("%s on %s -%s -%s N=%d", "MOXCS", "MAZE4", actionSelectionMethod, distCalcMethod, params.N), "performance", "Hyper Volumn");
+							String.format("%s on %s -%s -%s N=%d", "MOXCS", "MAZE4", actionSelectionMethod,
+									distCalcMethod, params.N),
+							"performance", "Hyper Volumn");
 
 					stepTrailsLogger.writeAverageChartsAsSinglePlot(
-							String.format("log/maze4/charts/%s/%s/%s - %s - Trail %s - <CHART_TITLE> - N%d.png", "MOXCS",
-									"MAZE4", actionSelectionMethod, distCalcMethod, "x", params.N),
-							String.format("%s on %s -%s -%s N=%d", "MOXCS", "MAZE4", actionSelectionMethod, distCalcMethod, params.N));
+							String.format("log/maze4/charts/%s/%s/%s - %s - Trail %s - <CHART_TITLE> - N%d.png",
+									"MOXCS", "MAZE4", actionSelectionMethod, distCalcMethod, "x", params.N),
+							String.format("%s on %s -%s -%s N=%d", "MOXCS", "MAZE4", actionSelectionMethod,
+									distCalcMethod, params.N));
 					System.out.println(String.format("####$##### Result of: Action:%s - Distance:%s - Trail#: %s - N%d",
 							actionSelectionMethod, distCalcMethod, "x", params.N));
 					writer.write(String.format("####$##### Result of: Action:%s - Distance:%s - Trail#: %s - N%d",
@@ -561,28 +585,32 @@ public class maze4_result implements Environment {
 		} // endof try
 	}
 
-//	private ArrayList<ArrayList<StepSnapshot>> traceOpenLocations(int timeStamp, maze4_result maze, Trace trace,
-//			NXCS nxcs, NXCSParameters params) {
-//		// stats variables
-//		ArrayList<ArrayList<StepSnapshot>> locStats = new ArrayList<ArrayList<StepSnapshot>>();
-//		for (Point p : maze.openLocations) {
-//			maze.resetToSamePosition(p);
-//			System.out.println(String.format("START TARCE*************" + "POINT:" + p));
-//			String startState = maze.getState();
-//			ArrayList<StepSnapshot> trc = trace.traceStartWithTwoStates(timeStamp, maze, params, nxcs, p);
-//			// ArrayList<StepSnapshot> trc = trace.traceStart(startState, nxcs);
-//			trc.stream().forEach(x -> x.setTimestamp(timeStamp));
-//			locStats.add(trc);
-//		}
-//		// print stats
-//		for (ArrayList<StepSnapshot> l : locStats) {
-//			for (StepSnapshot s : l) {
-//				System.out.println(s.toString());
-//			}
-//		}
-//
-//		return locStats;
-//	}
+	// private ArrayList<ArrayList<StepSnapshot>> traceOpenLocations(int
+	// timeStamp, maze4_result maze, Trace trace,
+	// NXCS nxcs, NXCSParameters params) {
+	// // stats variables
+	// ArrayList<ArrayList<StepSnapshot>> locStats = new
+	// ArrayList<ArrayList<StepSnapshot>>();
+	// for (Point p : maze.openLocations) {
+	// maze.resetToSamePosition(p);
+	// System.out.println(String.format("START TARCE*************" + "POINT:" +
+	// p));
+	// String startState = maze.getState();
+	// ArrayList<StepSnapshot> trc = trace.traceStartWithTwoStates(timeStamp,
+	// maze, params, nxcs, p);
+	// // ArrayList<StepSnapshot> trc = trace.traceStart(startState, nxcs);
+	// trc.stream().forEach(x -> x.setTimestamp(timeStamp));
+	// locStats.add(trc);
+	// }
+	// // print stats
+	// for (ArrayList<StepSnapshot> l : locStats) {
+	// for (StepSnapshot s : l) {
+	// System.out.println(s.toString());
+	// }
+	// }
+	//
+	// return locStats;
+	// }
 
 	private ArrayList<ArrayList<StepSnapshot>> traceWeight(int timeStamp, maze4_result maze, Trace trace, NXCS nxcs,
 			NXCSParameters params, Point weights) {
@@ -590,7 +618,8 @@ public class maze4_result implements Environment {
 		ArrayList<ArrayList<StepSnapshot>> locStats = new ArrayList<ArrayList<StepSnapshot>>();
 		for (Point p : maze.openLocations) {
 			maze.resetToSamePosition(p);
-			System.out.println(String.format("START TARCE*************" + "POINT:" + p));
+			// System.out.println(String.format("START TARCE*************" +
+			// "POINT:" + p));
 			String startState = maze.getState();
 			ArrayList<StepSnapshot> trc = trace.traceStartWithWeights(timeStamp, maze, params, nxcs, p, weights);
 			// ArrayList<StepSnapshot> trc = trace.traceStart(startState, nxcs);
@@ -607,30 +636,51 @@ public class maze4_result implements Environment {
 		return locStats;
 	}
 
-	private void printOpenLocationClassifiers(int timestamp, maze4_result maze, NXCS nxcs) {
-		for (Point p : maze.openLocations) {
-			// System.out.println(String.format("%d\t location:%d,%d",
-			// timestamp, (int) p.getX(), (int) p.getY()));
-			List<Classifier> C = nxcs.getMatchSet(maze.getStringForState(p.x, p.y));
-			for (int action : act) {
+	private void printOpenLocationClassifiers(int timestamp, maze4_result maze, NXCS nxcs, String prefix) {
+		try {
+			File finalLogFile = new File(prefix + timestamp + ".log");
+			finalLogFile.getParentFile().mkdirs();
 
-				List<Classifier> A = C.stream().filter(b -> b.action == action).collect(Collectors.toList());
-				// Collections.sort(A, (a, b) -> (int) ((a.fitness -
-				// b.fitness) * 10024));
-				Collections.sort(A, new Comparator<Classifier>() {
-					@Override
-					public int compare(Classifier o1, Classifier o2) {
-						return o1.fitness == o2.fitness ? 0 : (o1.fitness > o2.fitness ? 1 : -1);
+			FileWriter logWriter = new FileWriter(finalLogFile);
+			for (Point p : maze.openLocations) {
+//				System.out.println(String.format("%d\t location:%d,%d", timestamp, (int) p.getX(), (int) p.getY()));
+				List<Classifier> C = nxcs.getPopulation().stream()
+						.filter(c -> nxcs.stateMatches(c.condition, maze.getStringForState(p.x, p.y)))
+						.collect(Collectors.toList());
+				for (int action : act) {
+
+					List<Classifier> A = C.stream().filter(b -> b.action == action).collect(Collectors.toList());
+					Collections.sort(A, new Comparator<Classifier>() {
+						@Override
+						public int compare(Classifier o1, Classifier o2) {
+							return o1.fitness == o2.fitness ? 0 : (o1.fitness > o2.fitness ? 1 : -1);
+							// return o1.error == o2.error ? 0 : (o1.error >
+							// o2.error ? 1 : -1);
+						}
+					});
+					Classifier best = A.get(A.size() - 1);
+					if (A.size() > 0) {
+						for (Classifier c : A) {
+							logWriter.append(
+									"TimeStamp:" + timestamp + "\t" + "Normal\t" + maze.getxy() + "\t" + c.toString());
+							logWriter.append(System.lineSeparator());
+						}
 					}
-				});
-				if (A.size() >= 1) {
-					System.out.println(A.get(A.size() - 1));
+					if (A.size() >= 1) {
+						logWriter.append(
+								"TimeStamp:" + timestamp + "\t" + "Best\t" + maze.getxy() + "\t" + best.toString());
+						logWriter.append(System.lineSeparator());
+					}
+
 				}
-				if (timestamp >= 1000) {
-					System.out.println(A);
-				}
-			}
-		} // open locations
+			} // open locations
+
+			logWriter.append(System.lineSeparator());
+			logWriter.close();
+		} catch (Exception ex) {
+			System.out.println(ex.getMessage());
+		}
+
 	}
 
 	public ArrayList<ArrayList<StepSnapshot>> getOpenLocationExpectPaths() {

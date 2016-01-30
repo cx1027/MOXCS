@@ -163,42 +163,69 @@ public class NXCS {
 	}
 
 	public int classify(String currState, Point weight) {
-		if (currState.length() != params.stateLength)
-			throw new IllegalArgumentException(
-					String.format("The given state (%s) is not of the correct length", currState));
-		List<Classifier> matchSet = population.stream().filter(c -> stateMatches(c.condition, currState))
-				.collect(Collectors.toList());
-		List<Classifier> sortset = new ArrayList<Classifier>();
-		for (int action = 0; action < params.numActions; action++) {
-			final int act = action;
-			List<Classifier> A = matchSet.stream().filter(b -> b.action == act).collect(Collectors.toList());
-			if (A.size() == 0) {
-				continue;
-			}
-			double avgExp = A.stream().mapToDouble(x -> x.experience).average().getAsDouble();
-			List<Classifier> B = A.stream().filter(b -> b.experience >= avgExp).collect(Collectors.toList());
-			if (B.size() == 0) {
-				continue;
-			}
-			if (B.size() > 1)
-				Collections.sort(B, new Comparator<Classifier>() {
-					@Override
-					public int compare(Classifier o1, Classifier o2) {
-						return o1.error == o2.error ? 0 : (o1.error > o2.error ? 1 : -1);
-					}
-				});
-			sortset.add(B.get(0));
-		}
+		try {
+			if (currState.length() != params.stateLength)
+				throw new IllegalArgumentException(
+						String.format("The given state (%s) is not of the correct length", currState));
+			List<Classifier> matchSet = population.stream().filter(c -> stateMatches(c.condition, currState))
+					.collect(Collectors.toList());
+			List<Classifier> sortset = new ArrayList<Classifier>();
+			File finalLogFile = new File(this.filePrefix + this.finalState + ".log");
+			finalLogFile.getParentFile().mkdirs();
+			FileWriter logWriter = new FileWriter(finalLogFile, true);
+			for (int action = 0; action < params.numActions; action++) {
+				final int act = action;
+				List<Classifier> A = matchSet.stream().filter(b -> b.action == act).collect(Collectors.toList());
+				if (A.size() == 0) {
+					continue;
+				}
+				if (A.size() > 1)
+					/******** sort by fitness ********/
+					Collections.sort(A, new Comparator<Classifier>() {
+						@Override
+						public int compare(Classifier o1, Classifier o2) {
+							return o1.fitness == o2.fitness ? 0 : (o1.fitness > o2.fitness ? 1 : -1);
+						}
+					});
+				sortset.add(A.get(A.size() - 1));
+				// peek(A,A.get(A.size() - 1));
 
-		// delete the cls which next state=prestate
-		// sortset.removeIf(x -> x.conditionNext.equals(prevState));
-		if (sortset.size() != 0) {
-			double[] predictions = generateWeightsPredictions(sortset, weight);
-			return selectAction(predictions);
-		} else {
-			return XienceMath.randomInt(params.numActions);
-		}
+				/******** sort by Error ********/
+				// double avgExp = A.stream().mapToDouble(x ->
+				// x.experience).average().getAsDouble();
+				// List<Classifier> B = A.stream().filter(b -> b.experience >=
+				// avgExp).collect(Collectors.toList());
+				// if (B.size() == 0) {
+				// continue;
+				// }
+				// if (B.size() > 1)
+				// Collections.sort(B, new Comparator<Classifier>() {
+				// @Override
+				// public int compare(Classifier o1, Classifier o2) {
+				// return o1.error == o2.error ? 0 : (o1.error > o2.error ? 1 :
+				// -1);
+				// }
+				// });
+				// sortset.add(B.get(0));
+				for (Classifier c : A) {
+					logWriter.append("TimeStamp:" + timestamp + "\t" + "Normal\t" + env.getxy() + "\t" + c.toString());
+					logWriter.append(System.lineSeparator());
+				}
+			}
+			logWriter.close();
 
+			// delete the cls which next state=prestate
+			// sortset.removeIf(x -> x.conditionNext.equals(prevState));
+			if (sortset.size() != 0) {
+				double[] predictions = generateWeightsPredictions(sortset, weight);
+				return selectAction(predictions);
+			} else {
+				return XienceMath.randomInt(params.numActions);
+			}
+		} catch (Exception ex) {
+			System.out.println("Xystem Error when classifing" + ex.getMessage());
+			return 0;
+		}
 	}
 
 	public double[] calHyper(String state) {
@@ -1345,12 +1372,14 @@ public class NXCS {
 		child2.condition = child2Build.toString();
 	}
 
-	int[] peeks = { 99, 510, 1020, 1500, 3000 };
+	int[] peeks = { 510, 510, 530 };
 	ArrayList<ArrayList<Classifier>> peakList = new ArrayList<ArrayList<Classifier>>();
 	ArrayList<ArrayList<Classifier>> peakBestList = new ArrayList<ArrayList<Classifier>>();
 
 	int i3001 = peeks[peeks.length - 1] + 1;
 	private boolean printed;
+
+	public String filePrefix;
 
 	private void peek(List<Classifier> A, Classifier best) {
 		int pokingIdx = -1;
