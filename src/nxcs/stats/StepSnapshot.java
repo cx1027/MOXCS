@@ -115,7 +115,7 @@ public class StepSnapshot {
 				build.append(String.format("->(%d-%d)", (int) p.getX(), (int) p.getY()));
 			}
 		build.append("->");
-		build.append("\n");
+		build.append(System.lineSeparator());
 
 		return build.toString();
 	}
@@ -129,8 +129,8 @@ public class StepSnapshot {
 		build.append(String.format("(%d-%d)", (int) this.finalState.getX(), (int) this.finalState.getY()));
 		build.append(", ");
 		build.append(this.hyperVolumn);
-		build.append("\n");
-
+		build.append(System.lineSeparator());
+		
 		return build.toString();
 	}
 

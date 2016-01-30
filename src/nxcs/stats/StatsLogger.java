@@ -66,21 +66,21 @@ public class StatsLogger {
 						+ hyperMeasure + "\n");
 
 		for (int i = 0; i < snapshots.size(); i++) {
-			File finalLogFile = new File(logFile.replaceAll("<TIMESTEP_NUM>", "" + i));
-			finalLogFile.getParentFile().mkdirs();
-			FileWriter logWriter = new FileWriter(finalLogFile);
+//			File finalLogFile = new File(logFile.replaceAll("<TIMESTEP_NUM>", "" + i));
+//			finalLogFile.getParentFile().mkdirs();
+//			FileWriter logWriter = new FileWriter(finalLogFile);
 			List<Snapshot> stats = snapshots.get(i);
-			try {
-				for (int j = 0; j < stats.size(); j++) {
-					Snapshot s = stats.get(j);
-					logWriter.append(s.toString());
-					logWriter.append("\n\n");
-				}
+//			try {
+//				for (int j = 0; j < stats.size(); j++) {
+//					Snapshot s = stats.get(j);
+//					logWriter.append(s.toString());
+//					logWriter.append("\n\n");
+//				}
 
 				dataWriter.append(Snapshot.average(stats).toCSV());
-			} finally {
-				logWriter.close();
-			}
+//			} finally {
+//				logWriter.close();
+//			}
 		}
 		dataWriter.close();
 
