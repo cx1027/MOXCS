@@ -383,11 +383,12 @@ public class maze5_result implements Environment {
 			params.thetaDel = 200;
 			params.doActionSetSubsumption = false;
 			params.doGASubsumption = false;
+			Qvector qRefer = new Qvector(-1, -1);
 
 			int finalStateCount = 1;
 			boolean logged = false;
 			HyperVolumn hypervolumn = new HyperVolumn();
-			PathHyperVolumnCalculator phv = new PathHyperVolumnCalculator(hypervolumn, new addVectorNList());
+			PathHyperVolumnCalculator phv = new PathHyperVolumnCalculator(qRefer, hypervolumn, new addVectorNList());
 			int resultInterval = 30;
 			int numOfChartBars = 20;
 			ArrayList<Point> traceWeights = new ArrayList<Point>();

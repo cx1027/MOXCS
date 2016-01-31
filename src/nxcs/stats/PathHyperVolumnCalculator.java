@@ -13,10 +13,12 @@ import nxcs.addVectorNList;
 public class PathHyperVolumnCalculator {
 	private HyperVolumn hv;
 	private addVectorNList vtr;
+	private Qvector qRefer;
 
-	public PathHyperVolumnCalculator(HyperVolumn hv, addVectorNList vtr) {
+	public PathHyperVolumnCalculator(Qvector qRefer, HyperVolumn hv, addVectorNList vtr) {
 		this.hv = hv;
 		this.vtr = vtr;
+		this.qRefer = qRefer;
 	}
 
 	public double calculateHyperVolumnForWeight(ArrayList<StepSnapshot> stats, HashMap<Point, Qvector> rewards) {
@@ -34,7 +36,7 @@ public class PathHyperVolumnCalculator {
 
 		double sum = 0;
 		for (Qvector q : list) {
-			sum += hv.calcHyperVolumn(q, new Qvector(-100, -100));
+			sum += hv.calcHyperVolumn(q, this.qRefer);
 		}
 
 		System.out.println("-------------------------Path list ----------------------");
@@ -92,7 +94,7 @@ public class PathHyperVolumnCalculator {
 //			for (Qvector q : qList) {
 //				System.out.println(q.toString());
 //			}
-			hyper += hv.calcHyperVolumn(hv.normailze(qList), new Qvector(-8, -8));
+			hyper += hv.calcHyperVolumn(hv.normailze(qList), this.qRefer);
 		}
 //		System.out.println("-------------------------Path list ----------------------");
 //		for (StepSnapshot s : stats) {

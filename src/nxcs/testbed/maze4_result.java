@@ -339,7 +339,7 @@ public class maze4_result implements Environment {
 		File logFile = new File(timeLog);
 
 		writer = new BufferedWriter(new FileWriter(logFile));
-		int totalTrailTimes = 30;
+		int totalTrailTimes = 3;
 		int finalStateUpperBound = 3201;
 
 		act.add(0);
@@ -357,9 +357,9 @@ public class maze4_result implements Environment {
 			// maze.resetToSamePosition(new Point(5, 1));
 
 			// distance and exploration setting
-			String[] discCalcMethods = { "MIN", "MAX", "CORE", "J" };
+			String[] discCalcMethods = {  "CORE","MIN", "MAX", "J" };
 
-			String[] actionSelectionMethods = { "maxN", "maxH" };
+			String[] actionSelectionMethods = {  "maxH" };//"maxN",
 			// String[] actionSelectionMethods = { "maxH" };
 
 			// TODO:for different combination, LOOP for trials!!!!!!!!!!!!!!!!!!
@@ -374,7 +374,7 @@ public class maze4_result implements Environment {
 			params.pHash = 0.;
 			params.gamma = 0.5;
 			params.crossoverRate = 0.8;
-			params.mutationRate = 0.04;
+			params.mutationRate = 0.001;
 			params.thetaMNA = 4;
 			params.thetaGA = 500;
 			// params.thetaGA = 0;
@@ -383,11 +383,12 @@ public class maze4_result implements Environment {
 			params.thetaDel = 200;
 			params.doActionSetSubsumption = false;
 			params.doGASubsumption = false;
+			Qvector qRefer = new Qvector(-1, -1);
 
 			int finalStateCount = 1;
 			boolean logged = false;
 			HyperVolumn hypervolumn = new HyperVolumn();
-			PathHyperVolumnCalculator phv = new PathHyperVolumnCalculator(hypervolumn, new addVectorNList());
+			PathHyperVolumnCalculator phv = new PathHyperVolumnCalculator(qRefer, hypervolumn, new addVectorNList());
 			int resultInterval = 30;
 			int numOfChartBars = 20;
 			ArrayList<Point> traceWeights = new ArrayList<Point>();
