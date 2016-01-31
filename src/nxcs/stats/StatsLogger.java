@@ -27,7 +27,7 @@ public class StatsLogger {
 	private boolean isDumpData;
 	private boolean isDumpCsv;
 
-	public StatsLogger(int xInterval, int yInterval, boolean isDumpLog, boolean isDumpData, boolean isDumpCsv) {
+	public StatsLogger(int xInterval, int yInterval, boolean isDumpData, boolean isDumpCsv, boolean isDumpLog) {
 		this.xInterval = xInterval;
 		this.yInterval = yInterval;
 		this.isDumpLog = isDumpLog;

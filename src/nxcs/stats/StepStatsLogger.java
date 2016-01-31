@@ -32,7 +32,7 @@ public class StepStatsLogger {
 	private boolean isDumpData;
 	private boolean isDumpCsv;
 
-	public StepStatsLogger(int xInterval, int yInterval, boolean isDumpLog, boolean isDumpData, boolean isDumpCsv) {
+	public StepStatsLogger(int xInterval, int yInterval, boolean isDumpCsv, boolean isDumpData, boolean isDumpLog) {
 		this.xInterval = xInterval;
 		this.yInterval = yInterval;
 		this.isDumpLog = isDumpLog;
