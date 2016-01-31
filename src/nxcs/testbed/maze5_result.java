@@ -330,7 +330,7 @@ public class maze5_result implements Environment {
 	}
 
 	public static void main(String[] args) throws IOException {
-
+		String mazeName = "maze5";
 		Map<Integer, Map<Integer, Double>> tempList = new HashMap<Integer, Map<Integer, Double>>();
 		BufferedWriter writer = null;
 
@@ -340,7 +340,7 @@ public class maze5_result implements Environment {
 
 		writer = new BufferedWriter(new FileWriter(logFile));
 		int totalTrailTimes = 30;
-		int finalStateUpperBound = 3501;
+		int finalStateUpperBound = 3201;
 
 		act.add(0);
 		act.add(1);
@@ -357,7 +357,7 @@ public class maze5_result implements Environment {
 			// maze.resetToSamePosition(new Point(5, 1));
 
 			// distance and exploration setting
-			String[] discCalcMethods = { "CORE"};//"MIN", "MAX", , "J" };
+			String[] discCalcMethods = { "MIN", "MAX", "CORE", "J" };
 
 			String[] actionSelectionMethods = { "maxN", "maxH" };
 			// String[] actionSelectionMethods = { "maxH" };
@@ -418,8 +418,8 @@ public class maze5_result implements Environment {
 						continue;
 					}
 
-					StepStatsLogger stepTrailsLogger = new StepStatsLogger(chartXInterval, 0);
-					StatsLogger crossTrialStats = new StatsLogger(chartXInterval, 0);
+					StepStatsLogger stepTrailsLogger = new StepStatsLogger(chartXInterval, 0, true, true, false);
+					StatsLogger crossTrialStats = new StatsLogger(chartXInterval, 0, true, true, false);
 
 					// System.out.println(String.format("calculate Pareto sum at
 					// every %d times", resultInterval));
@@ -436,8 +436,8 @@ public class maze5_result implements Environment {
 						// clear stats
 						stats.clear();
 
-						StatsLogger logger = new StatsLogger(chartXInterval, 0);
-						StepStatsLogger stepLogger = new StepStatsLogger(chartXInterval, 0);
+						StatsLogger logger = new StatsLogger(chartXInterval, 0, true, true, false);
+						StepStatsLogger stepLogger = new StepStatsLogger(chartXInterval, 0, true, true, false);
 
 						System.out.println(
 								String.format("######### begin to run of: Action:%s - Distance:%s - Trail#: %s ",
@@ -446,9 +446,10 @@ public class maze5_result implements Environment {
 						// begin
 						while (finalStateCount < finalStateUpperBound) {
 							nxcs.runIteration(finalStateCount, maze.getState());
-							
+
 							nxcs.finalState = finalStateCount;
 							if (((finalStateCount < 100) || (finalStateCount % resultInterval == 0)) && !logged) {
+								// maze.printOpenLocationClassifiers(finalStateCount, maze, nxcs);
 								ArrayList<ArrayList<ArrayList<StepSnapshot>>> trailStats = new ArrayList<ArrayList<ArrayList<StepSnapshot>>>();
 								double hyperSum = 0;
 								ArrayList<StepSnapshot> hpStats = new ArrayList<StepSnapshot>();
@@ -468,8 +469,6 @@ public class maze5_result implements Environment {
 
 								stats.add(new Snapshot(finalStateCount, nxcs.getPopulation(), 0, 0, hyperSum));
 
-								// PRINT CLASSIFIERS
-								maze.printOpenLocationClassifiers(finalStateCount, maze, nxcs);
 								stepLogger.addRawStats(trailStats);
 								logged = true;
 							}
@@ -493,18 +492,17 @@ public class maze5_result implements Environment {
 
 						try {
 							logger.writeLogAndCSVFiles(String.format(
-									"log/maze5/csv/%s/%s/%s - %s - Trial %d - <TRIAL_NUM>-HyperVolumn - N%d.csv",
-									"MOXCS", "MAZE5", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
+									"log/%s/csv/%s/%s - %s - Trial %d - <TRIAL_NUM>-HyperVolumn - N%d.csv", mazeName,
+									"MOXCS", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
 									String.format(
-											"log/maze5/datadump/%s/%s - %s - Trail %d-<TIMESTEP_NUM> - hypervolumn - N%d.log",
-											"MOXCS", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
+											"log/%s/datadump/%s/%s - %s - Trail %d-<TIMESTEP_NUM> - hypervolumn - N%d.log",
+											mazeName, "MOXCS", actionSelectionMethod, distCalcMethod, trailIndex,
+											params.N),
 									"Hyper Volumn");
 							logger.writeChartsAsSinglePlot(String.format(
-									"log/maze5/charts/%s/%s/%s - %s - Trail %d - <CHART_TITLE>-hypervolumn - N%d.png",
-									"MOXCS", "MAZE5", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
-									String.format("%s on %s -%s -%s N=%d", "MOXCS", "MAZE5", actionSelectionMethod,
-											distCalcMethod, params.N),
-									"performance", "Hyper Volumn");
+									"log/%s/charts/%s/%s - %s - Trail %d - <CHART_TITLE>-hypervolumn - N%d.png",
+									mazeName, "MOXCS", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
+									String.format("%s on %s", "MOXCS", mazeName), "performance", "Hyper Volumn");
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
@@ -513,15 +511,15 @@ public class maze5_result implements Environment {
 						System.out.println(String.format("trace result log**************", finalStateCount));
 						stepLogger.calculateMatchPercentageForWeights(maze.getOpenLocationExpectPaths());
 						stepLogger.writeLogAndCSVFiles(
-								String.format("log/maze5/csv/%s/%s/%s - %s - Trial %d - <TRIAL_NUM> - N%d.csv", "MOXCS",
-										"MAZE5", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
-								String.format("log/maze5/datadump/%s/%s - %s - Trail %d-<TIMESTEP_NUM> - N%d.log",
+								String.format("log/%s/csv/%s/%s - %s - Trial %d - <TRIAL_NUM> - N%d.csv", mazeName,
 										"MOXCS", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
+								String.format("log/%s/datadump/%s/%s - %s - Trail %d-<TIMESTEP_NUM> - N%d.log",
+										mazeName, "MOXCS", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
 								traceWeights);
 						stepLogger.writeChartsAsSinglePlot(
-								String.format("log/maze5/charts/%s/%s/%s - %s - Trail %d - <CHART_TITLE> - N%d.png",
-										"MOXCS", "MAZE5", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
-								String.format("%s on %s -%s -%s N=%d", "MOXCS", "MAZE5", actionSelectionMethod,
+								String.format("log/%s/charts/%s/%s - %s - Trail %d - <CHART_TITLE> - N%d.png", mazeName,
+										"MOXCS", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
+								String.format("%s on %s -%s -%s N=%d", "MOXCS", mazeName, actionSelectionMethod,
 										distCalcMethod, params.N));
 
 						stepTrailsLogger.addBatchStats(stepLogger.getCurrentTrailStats());
@@ -529,23 +527,19 @@ public class maze5_result implements Environment {
 
 					// crossTrialStats for the avg result for 30 trials
 					crossTrialStats.writeLogAndCSVFiles(
-							String.format("log/maze5/csv/%s/%s/%s - %s - Trial %s - <TRIAL_NUM>-HyperVolumn - N%d.csv",
-									"MOXCS", "maze5", actionSelectionMethod, distCalcMethod, "x", params.N),
-							String.format(
-									"log/maze5/datadump/%s/%s - %s - Trail %s-<TIMESTEP_NUM> - hypervolumn - N%d.log",
-									"MOXCS", actionSelectionMethod, distCalcMethod, "x", params.N),
+							String.format("log/%s/csv/%s/%s - %s - Trial %s - <TRIAL_NUM>-HyperVolumn - N%d.csv",
+									mazeName, "MOXCS", actionSelectionMethod, distCalcMethod, "x", params.N),
+							String.format("log/%s/datadump/%s/%s - %s - Trail %s-<TIMESTEP_NUM> - hypervolumn.log",
+									mazeName, "MOXCS", actionSelectionMethod, distCalcMethod, "x", params.N),
 							"Hyper Volumn");
 					crossTrialStats.writeChartsAsSinglePlot(
-							String.format(
-									"log/maze5/charts/%s/%s/%s - %s - Trail %s - HyperVolumn - <CHART_TITLE> - N%d.png",
-									"MOXCS", "maze5", actionSelectionMethod, distCalcMethod, "x", params.N),
-							String.format("%s on %s -%s -%s N=%d", "MOXCS", "MAZE5", actionSelectionMethod,
-									distCalcMethod, params.N),
-							"performance", "Hyper Volumn");
+							String.format("log/%s/charts/%s/%s - %s - Trail %s - HyperVolumn - <CHART_TITLE> - N%d.png",
+									mazeName, "MOXCS", actionSelectionMethod, distCalcMethod, "x", params.N),
+							String.format("%s on %s", "MOXCS", mazeName), "performance", "Hyper Volumn");
 					stepTrailsLogger.writeAverageChartsAsSinglePlot(
-							String.format("log/maze5/charts/%s/%s/%s - %s - Trail %s - <CHART_TITLE> - N%d.png",
-									"MOXCS", "MAZE5", actionSelectionMethod, distCalcMethod, "x", params.N),
-							String.format("%s on %s -%s -%s N=%d", "MOXCS", "MAZE5", actionSelectionMethod,
+							String.format("log/%s/charts/%s/%s - %s - Trail %s - <CHART_TITLE> - N%d.png", mazeName,
+									"MOXCS", actionSelectionMethod, distCalcMethod, "x", params.N),
+							String.format("%s on %s -%s -%s N=%d", "MOXCS", mazeName, actionSelectionMethod,
 									distCalcMethod, params.N));
 					System.out.println(String.format("####$##### Result of: Action:%s - Distance:%s - Trail#: %s - N%d",
 							actionSelectionMethod, distCalcMethod, "x", params.N));

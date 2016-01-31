@@ -1,6 +1,4 @@
 /bin/
 /.classpath
-/log100/
-/log1500x1/
-/log1501/
-/log501/
+/log/
+/log*/
