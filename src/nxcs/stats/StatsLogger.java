@@ -23,6 +23,17 @@ public class StatsLogger {
 
 	private int xInterval;
 	private int yInterval;
+	private boolean isDumpLog;
+	private boolean isDumpData;
+	private boolean isDumpCsv;
+
+	public StatsLogger(int xInterval, int yInterval, boolean isDumpLog, boolean isDumpData, boolean isDumpCsv) {
+		this.xInterval = xInterval;
+		this.yInterval = yInterval;
+		this.isDumpLog = isDumpLog;
+		this.isDumpData = isDumpData;
+		this.isDumpCsv = isDumpCsv;
+	}
 
 	public StatsLogger(int xint, int yint) {
 		this.xInterval = xint;
@@ -58,6 +69,7 @@ public class StatsLogger {
 	public void writeLogAndCSVFiles(String csvFile, String logFile, String hyperMeasure) throws IOException {
 		File csv = new File(csvFile.replaceAll("<TRIAL_NUM>", "Average"));
 		csv.getParentFile().mkdirs();
+
 		FileWriter dataWriter = new FileWriter(csv);
 
 		// Write Column Headers
@@ -66,21 +78,27 @@ public class StatsLogger {
 						+ hyperMeasure + "\n");
 
 		for (int i = 0; i < snapshots.size(); i++) {
-//			File finalLogFile = new File(logFile.replaceAll("<TIMESTEP_NUM>", "" + i));
-//			finalLogFile.getParentFile().mkdirs();
-//			FileWriter logWriter = new FileWriter(finalLogFile);
 			List<Snapshot> stats = snapshots.get(i);
-//			try {
-//				for (int j = 0; j < stats.size(); j++) {
-//					Snapshot s = stats.get(j);
-//					logWriter.append(s.toString());
-//					logWriter.append("\n\n");
-//				}
 
+			if (this.isDumpLog) {
+				File finalLogFile = new File(logFile.replaceAll("<TIMESTEP_NUM>", "" + i));
+				finalLogFile.getParentFile().mkdirs();
+				FileWriter logWriter = new FileWriter(finalLogFile);
+
+				try {
+					for (int j = 0; j < stats.size(); j++) {
+						Snapshot s = stats.get(j);
+						logWriter.append(s.toString());
+						logWriter.append("\n\n");
+					}
+
+				} finally {
+					logWriter.close();
+				}
+			}
+			if (this.isDumpData) {
 				dataWriter.append(Snapshot.average(stats).toCSV());
-//			} finally {
-//				logWriter.close();
-//			}
+			}
 		}
 		dataWriter.close();
 

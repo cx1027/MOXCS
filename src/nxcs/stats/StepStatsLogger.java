@@ -28,6 +28,17 @@ public class StepStatsLogger {
 
 	private int xInterval;
 	private int yInterval;
+	private boolean isDumpLog;
+	private boolean isDumpData;
+	private boolean isDumpCsv;
+
+	public StepStatsLogger(int xInterval, int yInterval, boolean isDumpLog, boolean isDumpData, boolean isDumpCsv) {
+		this.xInterval = xInterval;
+		this.yInterval = yInterval;
+		this.isDumpLog = isDumpLog;
+		this.isDumpData = isDumpData;
+		this.isDumpCsv = isDumpCsv;
+	}
 
 	public StepStatsLogger(int xint, int yint) {
 		this.xInterval = xint;
@@ -159,13 +170,13 @@ public class StepStatsLogger {
 							stats.get(j).get(i).coverage));
 				} else {
 					sts.get(i).matchedRate += stats.get(j).get(i).matchedRate;
-//					sts.get(i).coverage += stats.get(j).get(i).coverage;
+					// sts.get(i).coverage += stats.get(j).get(i).coverage;
 				}
 			}
 		}
 		sts.stream().forEach(x -> {
 			x.matchedRate = x.matchedRate / stats.size();
-//			x.coverage = x.coverage / stats.size();
+			// x.coverage = x.coverage / stats.size();
 		});
 		return sts;
 	}
@@ -179,22 +190,28 @@ public class StepStatsLogger {
 		dataWriter.write("Number of Learning Problems, Avg. Matched Rate, Avg. Coverage Rate" + "\n");
 		List<StepStatsPoint> averages = new ArrayList<StepStatsPoint>();
 
-		// for (int i = 0; i < this.statsPoints.size(); i++) {
-//		File finalLogFile = new File(logFile.replaceAll("<TIMESTEP_NUM>", ""));
-//		finalLogFile.getParentFile().mkdirs();
-//		FileWriter logWriter = new FileWriter(finalLogFile);
+		if (this.isDumpLog) {
+			File finalLogFile = new File(logFile.replaceAll("<TIMESTEP_NUM>", ""));
+			finalLogFile.getParentFile().mkdirs();
+			FileWriter logWriter = new FileWriter(finalLogFile);
+			List<StepStatsPoint> stats = this.statsPoints;
+			try {
+				for (int j = 0; j < stats.size(); j++) {
+					StepStatsPoint s = stats.get(j);
+					logWriter.append(s.toString());
+					logWriter.append("\n\n");
+				}
+			} finally {
+				logWriter.close();
+			}
+		}
 		List<StepStatsPoint> stats = this.statsPoints;
-		try {
+		if (this.isDumpData) {
 			for (int j = 0; j < stats.size(); j++) {
 				StepStatsPoint s = stats.get(j);
-//				logWriter.append(s.toString());
-//				logWriter.append("\n\n");
 				dataWriter.append(s.toCSV());
 			}
-		} finally {
-//			logWriter.close();
 		}
-		// }
 		dataWriter.close();
 
 		csv = new File(csvFile.replaceAll("<TRIAL_NUM>", "step_log"));
@@ -224,15 +241,15 @@ public class StepStatsLogger {
 
 		XYSeries[] series = new XYSeries[1];
 		series[0] = new XYSeries("Average Matched Rate");
-//		series[1] = new XYSeries("Average Coverage Rate");
+		// series[1] = new XYSeries("Average Coverage Rate");
 		series[0].add(0, 0);
-//		series[1].add(0, 0);
+		// series[1].add(0, 0);
 		for (StepStatsPoint s : averages) {
 			series[0].add(s.timestamp, s.matchedRate);
-//			series[1].add(s.timestamp, s.coverage);
+			// series[1].add(s.timestamp, s.coverage);
 		}
 
-		String[] labels = { "Avg. Matched Rate"};//, "Avg. Coverage Rate" };
+		String[] labels = { "Avg. Matched Rate" };// , "Avg. Coverage Rate" };
 		writeChartsAsSinglePlot(chartFile, problem, labels, series);
 	}
 
@@ -271,15 +288,15 @@ public class StepStatsLogger {
 
 		XYSeries[] series = new XYSeries[1];
 		series[0] = new XYSeries("Average Matched Rate");
-//		series[1] = new XYSeries("Average Coverage Rate");
+		// series[1] = new XYSeries("Average Coverage Rate");
 		series[0].add(0, 0);
-//		series[1].add(0, 0);
+		// series[1].add(0, 0);
 		for (StepStatsPoint s : averages) {
 			series[0].add(s.timestamp, s.matchedRate);
-//			series[1].add(s.timestamp, s.coverage);
+			// series[1].add(s.timestamp, s.coverage);
 		}
 
-		String[] labels = { "Avg. Matched Rate"};//, "Avg. Coverage Rate" };
+		String[] labels = { "Avg. Matched Rate" };// , "Avg. Coverage Rate" };
 		writeChartsAsSinglePlot(chartFile, problem, labels, series);
 	}
 
