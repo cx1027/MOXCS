@@ -161,12 +161,11 @@ public class NXCS {
 		}
 
 		// delete the cls which next state=prestate
-//		sortset.removeIf(x -> x.conditionNext.equals(prevState));
-		if(sortset.size()>0){
+		// sortset.removeIf(x -> x.conditionNext.equals(prevState));
+		if (sortset.size() > 0) {
 			double[] predictions = generateWeightsPredictions(sortset, weight);
 			return selectAction(predictions);
-		}
-		else{
+		} else {
 			return XienceMath.randomInt(params.numActions);
 		}
 	}
@@ -206,10 +205,11 @@ public class NXCS {
 		}
 
 		// delete the cls which next state=prestate
-//		sortset.removeIf(x -> x.conditionNext.equals(prevState));
+		// sortset.removeIf(x -> x.conditionNext.equals(prevState));
 		double[] predictions = generatePredictions(sortset);
 		return selectAction(predictions);
 	}
+
 	public double[] calHyper(String state) {
 		HyperVolumn hypervolumn = new HyperVolumn();
 		double[] hyper = { 0, 0, 0, 0 };
@@ -254,101 +254,104 @@ public class NXCS {
 					// select best action????????
 					action = selectAction(hyperP);
 				}
+				if (params.actionSelection.equals("random")) {
+					action = XienceMath.randomInt(params.numActions);
+				}
 			} else {
 				action = XienceMath.randomInt(params.numActions);
 			}
 		} else {
 			action = XienceMath.randomInt(params.numActions);
 		}
-		
-//		System.out.println("action:" + action);
 
-//		 if (i == 1) {
-//		 action = 0;
-//		 }
-//		 if (i == 2) {
-//		 action = 0;
-//		
-//		 }
-//		 if (i == 3) {
-//		 action = 0;
-//		
-//		 }
-//		 if (i == 4) {
-//		 action = 0;
-//		
-//		 }
-//		 if (i == 5) {
-//		 action = 0;
-//		
-//		 }
-//		 if (i == 6) {
-//		 action = 0;
-//		
-//		 }
-//		 if (i == 7) {
-//		 action = 0;
-//		
-//		 }
-//		 if (i == 8) {
-//		 action = 0;
-//		
-//		 }
-//		 if (i == 9) {
-//		 action = 0;
-//		
-//		 }
-//		 if (i == 10) {
-//		 action = 0;
-//		
-//		 }
-//		 if (i == 11) {
-//		 action = 0;
-//		
-//		 }
-//		 if (i == 12) {
-//		 action = 0;
-//		
-//		 }
-//		 if (i == 13) {
-//		 action = 0;
-//		
-//		 }
-//		 if (i == 14) {
-//		 action = 0;
-//		
-//		 }
-//		 if (i == 15) {
-//		 action = 0;
-//		
-//		 }
-//		 if (i == 16) {
-//		 action = 0;
-//		 }
-//		 if (i == 17) {
-//		 action = 0;
-//		 }
-//		 if (i == 18) {
-//		 action = 0;
-//		 }
-//		 if (i == 19) {
-//		 action = 0;
-//		 }
-//		 if (i == 20) {
-//		 action = 0;
-//		 }
-//		 if (i == 21) {
-//		 action = 0;
-//		 }
-//		 if (i == 22) {
-//		 action = 0;
-//		 }
-//		 if (i == 23) {
-//		 action = 1;
-//		 }
-//		 if (i == 23) {
-//		 action = 2;
-//		 }
+		// System.out.println("action:" + action);
+
+		// if (i == 1) {
+		// action = 0;
+		// }
+		// if (i == 2) {
+		// action = 0;
+		//
+		// }
+		// if (i == 3) {
+		// action = 0;
+		//
+		// }
+		// if (i == 4) {
+		// action = 0;
+		//
+		// }
+		// if (i == 5) {
+		// action = 0;
+		//
+		// }
+		// if (i == 6) {
+		// action = 0;
+		//
+		// }
+		// if (i == 7) {
+		// action = 0;
+		//
+		// }
+		// if (i == 8) {
+		// action = 0;
+		//
+		// }
+		// if (i == 9) {
+		// action = 0;
+		//
+		// }
+		// if (i == 10) {
+		// action = 0;
+		//
+		// }
+		// if (i == 11) {
+		// action = 0;
+		//
+		// }
+		// if (i == 12) {
+		// action = 0;
+		//
+		// }
+		// if (i == 13) {
+		// action = 0;
+		//
+		// }
+		// if (i == 14) {
+		// action = 0;
+		//
+		// }
+		// if (i == 15) {
+		// action = 0;
+		//
+		// }
+		// if (i == 16) {
+		// action = 0;
+		// }
+		// if (i == 17) {
+		// action = 0;
+		// }
+		// if (i == 18) {
+		// action = 0;
+		// }
+		// if (i == 19) {
+		// action = 0;
+		// }
+		// if (i == 20) {
+		// action = 0;
+		// }
+		// if (i == 21) {
+		// action = 0;
+		// }
+		// if (i == 22) {
+		// action = 0;
+		// }
+		// if (i == 23) {
+		// action = 1;
+		// }
+		// if (i == 23) {
+		// action = 2;
+		// }
 		// if (i == 24) {
 		// action = 3;
 		// }
@@ -724,17 +727,11 @@ public class NXCS {
 			final int actIndex = act;
 			List<Classifier> setAA = setM.stream().filter(c -> c.action == actIndex).collect(Collectors.toList());
 			if (setAA.size() > 0) {
-				try {
-//					Collections.sort(setAA, (a, b) -> (int) ((a.fitness - b.fitness) * 10024));
-					Collections.sort(setAA, new Comparator<Classifier>() {
-						@Override
-						public int compare(Classifier o1, Classifier o2) {
-							return o1.fitness == o2.fitness ? 0 : (o1.fitness > o2.fitness ? 1 : -1);
-						}
-					});
-				} catch (Exception e) {
-					System.out.println(String.format("sorrrrrrrrrrrt"));
-				}
+
+				// Collections.sort(setAA, (a, b) -> (int) ((a.fitness -
+				// b.fitness) * 10024));
+				Collections.sort(setAA, (a, b) -> Double.compare(a.fitness, b.fitness));
+
 				Vdots.get(actIndex).addAll(setAA.get(setAA.size() - 1).getV().stream().map(d -> d.clone())
 						.collect(toCollection(ArrayList::new)));
 			}
@@ -1179,8 +1176,8 @@ public class NXCS {
 	 * @return
 	 */
 	private double getPredictionforupdate(String previousState, int preAction) {
-
-		List<Classifier> previousMatchSet = generateMatchSet(previousState);
+		List<Classifier> previousMatchSet = getPopulation().stream().filter(c ->stateMatches(c.condition, previousState))
+				.collect(Collectors.toList());
 		int nP = 0;
 
 		if (!env.isEndOfProblem(previousState)) {

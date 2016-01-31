@@ -229,8 +229,9 @@ public class Trace {
 		ActionPareto nextTarget = null;
 		ActionPareto nextV = null;
 		addVectorNList minus = new addVectorNList();
-
-		List<ActionPareto> varList = getParetoVnR(nxcs.generateMatchSet(nextState));
+		List<Classifier> matchSet = nxcs.getPopulation().stream().filter(c -> nxcs.stateMatches(c.condition, nextState))
+				.collect(Collectors.toList());
+		List<ActionPareto> varList = getParetoVnR(matchSet);
 		// System.out.println("***print cur VAlist:" + VAlist);
 		// find less distance between nextV and curTarget
 		// getMin(nextV,curTarget)
