@@ -380,7 +380,7 @@ public class maze6_result implements Environment {
 			params.thetaDel = 200;
 			params.doActionSetSubsumption = false;
 			params.doGASubsumption = false;
-			Qvector qRefer = new Qvector(-1, -1);
+			Qvector qRefer = new Qvector(0, 0);
 
 			int finalStateCount = 1;
 			boolean logged = false;

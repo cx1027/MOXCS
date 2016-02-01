@@ -339,7 +339,7 @@ public class maze4_result implements Environment {
 		File logFile = new File(timeLog);
 
 		writer = new BufferedWriter(new FileWriter(logFile));
-		int totalTrailTimes = 3;
+		int totalTrailTimes = 30;
 		int finalStateUpperBound = 3201;
 
 		act.add(0);
@@ -359,7 +359,7 @@ public class maze4_result implements Environment {
 			// distance and exploration setting
 			String[] discCalcMethods = {  "CORE","MIN", "MAX", "J" };
 
-			String[] actionSelectionMethods = {  "maxH" };//"maxN",
+			String[] actionSelectionMethods = {  "maxN", "maxH" };//"maxN",
 			// String[] actionSelectionMethods = { "maxH" };
 
 			// TODO:for different combination, LOOP for trials!!!!!!!!!!!!!!!!!!
@@ -383,7 +383,7 @@ public class maze4_result implements Environment {
 			params.thetaDel = 200;
 			params.doActionSetSubsumption = false;
 			params.doGASubsumption = false;
-			Qvector qRefer = new Qvector(-1, -1);
+			Qvector qRefer = new Qvector(0, 0);
 
 			int finalStateCount = 1;
 			boolean logged = false;
