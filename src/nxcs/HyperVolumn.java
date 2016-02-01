@@ -28,6 +28,7 @@ public class HyperVolumn {
 		double hper = 0;
 		hper += Math.abs(q.getQvalue().get(0) - refer.getQvalue().get(0))
 				* Math.abs(q.getQvalue().get(1) - refer.getQvalue().get(1));
+
 		return hper;
 	}
 
@@ -38,7 +39,7 @@ public class HyperVolumn {
 		//
 		// return new Qvector(q.getQvalue().get(0) / sumSqrt,
 		// q.getQvalue().get(1) / sumSqrt);
-		return new Qvector((20 + q.get(0)) / 20, q.get(1) / 20);
+		return new Qvector((20 + q.get(0)) / 16, q.get(1) / 16);
 	}
 
 	public ArrayList<Qvector> normailze(ArrayList<Qvector> list) {
