@@ -1268,11 +1268,11 @@ public class NXCS {
 
 			Classifier[] children = new Classifier[] { child1, child2 };
 			for (Classifier child : children) {
-				String conditionOriginal = child.condition;
+//				String conditionOriginal = child.condition;
 				child.mutate(state, params.mutationRate, params.numActions);
-				if (child.wildcardCount() > 2) {
-					child.condition = conditionOriginal;
-				}
+//				if (child.wildcardCount() > 2) {
+//					child.condition = conditionOriginal;
+//				}
 				if (params.doGASubsumption) {
 					if (parent1.doesSubsume(child, params.thetaSub, params.e0)) {
 						parent1.numerosity++;
