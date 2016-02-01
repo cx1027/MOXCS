@@ -1104,9 +1104,6 @@ public class NXCS {
 
 				// clas.setV( addVL.addVectorNList(clas.getQ(), clas.getR());
 				if (env.isEndOfProblem(currentState)) {
-					if (Math.abs(clas.getR().get(0) * 10 % 10) > 0) {
-						System.out.println("clas.R:" + clas.getR());
-					}
 					clas.setV(paretoQ.getPareto(nextQ), P);
 				} else {
 					clas.setQ(paretoQ.getPareto(nextQ));
