@@ -340,7 +340,7 @@ public class maze5_result implements Environment {
 
 		writer = new BufferedWriter(new FileWriter(logFile));
 		int totalTrailTimes = 30;
-		int finalStateUpperBound = 3201;
+		int finalStateUpperBound = 5001;
 
 		act.add(0);
 		act.add(1);
@@ -357,9 +357,9 @@ public class maze5_result implements Environment {
 			// maze.resetToSamePosition(new Point(5, 1));
 
 			// distance and exploration setting
-			String[] discCalcMethods = { "MIN", "MAX", "CORE", "J" };
+			String[] discCalcMethods = { "CORE", "J" ,"MIN", "MAX"};//
 
-			String[] actionSelectionMethods = { "maxN", "maxH" };
+			String[] actionSelectionMethods = { "maxH", "maxN" };
 			// String[] actionSelectionMethods = { "maxH" };
 
 			// TODO:for different combination, LOOP for trials!!!!!!!!!!!!!!!!!!
@@ -367,14 +367,14 @@ public class maze5_result implements Environment {
 			NXCSParameters params = new NXCSParameters();
 			// Another set of parameters Woods1, Woods101
 
-			params.N = 6000;
+			params.N = 5000;
 			params.stateLength = 24;
 			params.numActions = 4;
 			params.rho0 = 1000;
 			params.pHash = 0.;
 			params.gamma = 0.5;
 			params.crossoverRate = 0.8;
-			params.mutationRate = 0.04;
+			params.mutationRate = 0.001;
 			params.thetaMNA = 4;
 			params.thetaGA = 500;
 			// params.thetaGA = 0;
@@ -389,7 +389,7 @@ public class maze5_result implements Environment {
 			boolean logged = false;
 			HyperVolumn hypervolumn = new HyperVolumn();
 			PathHyperVolumnCalculator phv = new PathHyperVolumnCalculator(qRefer, hypervolumn, new addVectorNList());
-			int resultInterval = 30;
+			int resultInterval = 50;
 			int numOfChartBars = 20;
 			ArrayList<Point> traceWeights = new ArrayList<Point>();
 			traceWeights.add(new Point(10, 90));
@@ -450,7 +450,8 @@ public class maze5_result implements Environment {
 
 							nxcs.finalState = finalStateCount;
 							if (((finalStateCount < 100) || (finalStateCount % resultInterval == 0)) && !logged) {
-								// maze.printOpenLocationClassifiers(finalStateCount, maze, nxcs);
+								// maze.printOpenLocationClassifiers(finalStateCount,
+								// maze, nxcs);
 								ArrayList<ArrayList<ArrayList<StepSnapshot>>> trailStats = new ArrayList<ArrayList<ArrayList<StepSnapshot>>>();
 								double hyperSum = 0;
 								ArrayList<StepSnapshot> hpStats = new ArrayList<StepSnapshot>();
@@ -503,7 +504,9 @@ public class maze5_result implements Environment {
 							logger.writeChartsAsSinglePlot(String.format(
 									"log/%s/charts/%s/%s - %s - Trail %d - <CHART_TITLE>-hypervolumn - N%d.png",
 									mazeName, "MOXCS", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
-									String.format("%s on %s", "MOXCS", mazeName), "performance", "Hyper Volumn");
+									String.format("%s on %s -%s -%s N=%d", "MOXCS", mazeName, actionSelectionMethod,
+											distCalcMethod, params.N),
+									"performance", "Hyper Volumn");
 						} catch (IOException e) {
 							e.printStackTrace();
 						}

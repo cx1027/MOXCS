@@ -340,7 +340,7 @@ public class maze6_result implements Environment {
 
 		writer = new BufferedWriter(new FileWriter(logFile));
 		int totalTrailTimes = 30;
-		int finalStateUpperBound = 3201;
+		int finalStateUpperBound = 5001;
 
 		act.add(0);
 		act.add(1);
@@ -357,21 +357,20 @@ public class maze6_result implements Environment {
 			// distance and exploration setting
 			String[] discCalcMethods = { "MIN", "MAX", "CORE", "J" };
 
-			String[] actionSelectionMethods = { "maxN", "maxH" };// , "random"
-																	// };
+			String[] actionSelectionMethods = { "maxN", "maxH" };// , "random" 
 			// String[] actionSelectionMethods = { "maxH" };
 
 			NXCSParameters params = new NXCSParameters();
 			// Another set of parameters Woods1, Woods101
 
-			params.N = 6000;
+			params.N = 5000;
 			params.stateLength = 24;
 			params.numActions = 4;
 			params.rho0 = 1000;
 			params.pHash = 0.;
 			params.gamma = 0.5;
 			params.crossoverRate = 0.8;
-			params.mutationRate = 0.04;
+			params.mutationRate = 0.001;
 			params.thetaMNA = 4;
 			params.thetaGA = 500;
 			// params.thetaGA = 0;
@@ -386,7 +385,7 @@ public class maze6_result implements Environment {
 			boolean logged = false;
 			HyperVolumn hypervolumn = new HyperVolumn();
 			PathHyperVolumnCalculator phv = new PathHyperVolumnCalculator(qRefer, hypervolumn, new addVectorNList());
-			int resultInterval = 30;
+			int resultInterval = 50;
 			int numOfChartBars = 20;
 			ArrayList<Point> traceWeights = new ArrayList<Point>();
 			traceWeights.add(new Point(10, 90));
@@ -499,7 +498,9 @@ public class maze6_result implements Environment {
 							logger.writeChartsAsSinglePlot(String.format(
 									"log/%s/charts/%s/%s - %s - Trail %d - <CHART_TITLE>-hypervolumn - N%d.png",
 									mazeName, "MOXCS", actionSelectionMethod, distCalcMethod, trailIndex, params.N),
-									String.format("%s on %s", "MOXCS", mazeName), "performance", "Hyper Volumn");
+									String.format("%s on %s -%s -%s N=%d", "MOXCS", mazeName, actionSelectionMethod,
+											distCalcMethod, params.N),
+									"performance", "Hyper Volumn");
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
