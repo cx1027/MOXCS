@@ -477,15 +477,7 @@ public class Classifier implements Serializable {
 	}
 
 	public int wildcardCount() {
-		int count = 0;
-		for (int i = 0; i < condition.length(); i++) {
-			if (condition.charAt(i) == '#') {
-				count++;
-			}
-
-		}
-
-		return count;
+		return (int) condition.chars().filter(c -> c == '#').count();
 	}
 
 	@Override

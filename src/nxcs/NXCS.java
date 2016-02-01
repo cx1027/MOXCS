@@ -1173,8 +1173,8 @@ public class NXCS {
 	 * @return
 	 */
 	private double getPredictionforupdate(String previousState, int preAction) {
-		List<Classifier> previousMatchSet = getPopulation().stream().filter(c ->stateMatches(c.condition, previousState))
-				.collect(Collectors.toList());
+		List<Classifier> previousMatchSet = getPopulation().stream()
+				.filter(c -> stateMatches(c.condition, previousState)).collect(Collectors.toList());
 		int nP = 0;
 
 		if (!env.isEndOfProblem(previousState)) {
@@ -1268,16 +1268,11 @@ public class NXCS {
 
 			Classifier[] children = new Classifier[] { child1, child2 };
 			for (Classifier child : children) {
+				String conditionOriginal = child.condition;
 				child.mutate(state, params.mutationRate, params.numActions);
-				// if (flagga == false) {
-				// child.condition = "11011011000011#110000000";
-				// child.action = 2;
-				// System.out.println("clas:" + child);
-				// flagga = true;
-				// }
-				// if (i==2){
-				// child.condition="11011011#110000110110000";
-				// child.action=2;}
+				if (child.wildcardCount() > 2) {
+					child.condition = conditionOriginal;
+				}
 				if (params.doGASubsumption) {
 					if (parent1.doesSubsume(child, params.thetaSub, params.e0)) {
 						parent1.numerosity++;
