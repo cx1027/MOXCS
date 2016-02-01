@@ -75,7 +75,7 @@ public class StatsLogger {
 		// Write Column Headers
 		dataWriter
 				.write("Number of Learning Problems, Population Size, Average Fitness, Average Specificity, Macro Classifier Proportion, "
-						+ hyperMeasure + "\n");
+						+ hyperMeasure + System.lineSeparator());
 
 		for (int i = 0; i < snapshots.size(); i++) {
 			List<Snapshot> stats = snapshots.get(i);
@@ -89,7 +89,7 @@ public class StatsLogger {
 					for (int j = 0; j < stats.size(); j++) {
 						Snapshot s = stats.get(j);
 						logWriter.append(s.toString());
-						logWriter.append("\n\n");
+						logWriter.append(System.lineSeparator());
 					}
 
 				} finally {
@@ -108,7 +108,7 @@ public class StatsLogger {
 				dataWriter = new FileWriter(csv);
 				dataWriter
 						.write("Number of Learning Problems, Population Size, Average Fitness, Average Specificity, Macro Classifier Proportion, "
-								+ hyperMeasure + "\n");
+								+ hyperMeasure + System.lineSeparator());
 				for (int j = 0; j < snapshots.size(); j++) {
 					dataWriter.append(snapshots.get(j).get(i).toCSV());
 				}
@@ -157,7 +157,7 @@ public class StatsLogger {
 
 			XYSeriesCollection data = new XYSeriesCollection();
 			data.addSeries(series[i]);
-			JFreeChart chart = ChartFactory.createScatterPlot(labels[i] + "\n" + problem, "Number of Learning Problems",
+			JFreeChart chart = ChartFactory.createScatterPlot(labels[i] + System.lineSeparator()+ problem, "Number of Learning Problems",
 					labels[i], data);
 			chart.setBackgroundPaint(Color.white);
 			XYPlot plot = chart.getXYPlot();
@@ -228,7 +228,7 @@ public class StatsLogger {
 			for (int j = 0; j < series.length; j++) {
 				data.addSeries(series[j][i]);
 			}
-			JFreeChart chart = ChartFactory.createScatterPlot(labels[i] + "\n" + problem, "Number of Learning Problems",
+			JFreeChart chart = ChartFactory.createScatterPlot(labels[i] + System.lineSeparator() + problem, "Number of Learning Problems",
 					labels[i], data);
 			chart.setBackgroundPaint(Color.white);
 			XYPlot plot = chart.getXYPlot();

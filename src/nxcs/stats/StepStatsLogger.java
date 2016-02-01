@@ -187,7 +187,7 @@ public class StepStatsLogger {
 		FileWriter dataWriter = new FileWriter(csv);
 
 		// Write Column Headers
-		dataWriter.write("Number of Learning Problems, Avg. Matched Rate, Avg. Coverage Rate" + "\n");
+		dataWriter.write("Number of Learning Problems, Avg. Matched Rate, Avg. Coverage Rate" + System.lineSeparator());
 		List<StepStatsPoint> averages = new ArrayList<StepStatsPoint>();
 
 		if (this.isDumpLog) {
@@ -199,7 +199,7 @@ public class StepStatsLogger {
 				for (int j = 0; j < stats.size(); j++) {
 					StepStatsPoint s = stats.get(j);
 					logWriter.append(s.toString());
-					logWriter.append("\n\n");
+					logWriter.append(System.lineSeparator());
 				}
 			} finally {
 				logWriter.close();
@@ -216,7 +216,7 @@ public class StepStatsLogger {
 
 		csv = new File(csvFile.replaceAll("<TRIAL_NUM>", "step_log"));
 		dataWriter = new FileWriter(csv);
-		dataWriter.write("Weight,Number of Learning Problems, Open State, Final State, Steps, Path" + "\n");
+		dataWriter.write("Weight,Number of Learning Problems, Open State, Final State, Steps, Path" + System.lineSeparator());
 
 		for (int j = 0; j < this.multiSnapshots.size(); j++) {
 			for (int i = 0; i < this.multiSnapshots.get(j).size(); i++) {
@@ -275,7 +275,7 @@ public class StepStatsLogger {
 		FileWriter dataWriter = new FileWriter(csv);
 
 		// Write Column Headers
-		dataWriter.write("Number of Learning Problems, Avg. Matched Rate, Avg. Coverage Rate" + "\n");
+		dataWriter.write("Number of Learning Problems, Avg. Matched Rate, Avg. Coverage Rate" + System.lineSeparator());
 
 		try {
 			for (int j = 0; j < averages.size(); j++) {
@@ -306,7 +306,7 @@ public class StepStatsLogger {
 		for (int i = 0; i < labels.length; i++) {
 			XYSeriesCollection data = new XYSeriesCollection();
 			data.addSeries(series[i]);
-			JFreeChart chart = ChartFactory.createScatterPlot(labels[i] + "\n" + problem, "Number of Learning Problems",
+			JFreeChart chart = ChartFactory.createScatterPlot(labels[i] + System.lineSeparator() + problem, "Number of Learning Problems",
 					labels[i], data);
 			chart.setBackgroundPaint(Color.white);
 			XYPlot plot = chart.getXYPlot();

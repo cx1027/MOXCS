@@ -54,4 +54,54 @@ public class HyperVolumnTest {
 		assertEquals(actual.get(3).equals(q3), true);
 
 	}
+
+	@Test
+	public void test_calcHyperVolumn_should_equals_to_3() {
+		Qvector q1 = new Qvector(1, 2);
+		Qvector q2 = new Qvector(2, 1);
+
+		ArrayList<Qvector> qlist = new ArrayList<Qvector>();
+		qlist.add(q1);
+		qlist.add(q2);
+		HyperVolumn hv = new HyperVolumn();
+		Qvector refer = new Qvector(0, 0);
+		double actual = hv.calcHyperVolumn(qlist, refer);
+
+		assertEquals(actual == 3, true);
+
+	}
+
+	@Test
+	public void test_calcHyperVolumn_should_equals_to_4() {
+		Qvector q1 = new Qvector(1, 2);
+		Qvector q2 = new Qvector(3, 1);
+
+		ArrayList<Qvector> qlist = new ArrayList<Qvector>();
+		qlist.add(q1);
+		qlist.add(q2);
+		HyperVolumn hv = new HyperVolumn();
+		Qvector refer = new Qvector(0, 0);
+		double actual = hv.calcHyperVolumn(qlist, refer);
+
+		assertEquals(actual == 4, true);
+
+	}
+
+	@Test
+	public void test_calcHyperVolumn_three_Qvector_should_equals_to_425() {
+		Qvector q1 = new Qvector(1, 2);
+		Qvector q2 = new Qvector(1.5, 1.5);
+		Qvector q3 = new Qvector(3, 1);
+
+		ArrayList<Qvector> qlist = new ArrayList<Qvector>();
+		qlist.add(q1);
+		qlist.add(q2);
+		qlist.add(q3);
+		HyperVolumn hv = new HyperVolumn();
+		Qvector refer = new Qvector(0, 0);
+		double actual = hv.calcHyperVolumn(qlist, refer);
+
+		assertEquals(actual == 4.25, true);
+
+	}
 }
